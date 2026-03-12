@@ -2,13 +2,13 @@
 
 Questo documento definisce i contratti per gli endpoint API. Verrà esteso e dettagliato mano a mano che le feature vengono implementate.
 
-## Auth (Persona 1)
+## Auth
 - `POST /api/auth/token/`
   - Payload Auth
 - `POST /api/auth/token/refresh/`
 - `POST /api/auth/register/` (Da definire payload esatto con UI)
 
-## Catalog (Persona 2)
+## Catalog
 ### Categories
 - `GET /api/categories/`
 - `POST /api/categories/`
@@ -23,7 +23,7 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
 - `PUT/PATCH /api/products/{id}/`
 - `DELETE /api/products/{id}/`
 
-## Reviews (Persona 3)
+## Reviews
 - `GET /api/reviews/`
 - `POST /api/reviews/`
 - `GET /api/reviews/{id}/`
