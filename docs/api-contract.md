@@ -59,6 +59,38 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
   }
   ```
 
+### Get My Profile
+- **URL**: `/api/auth/me/`
+- **Method**: `GET`
+- **Authentication**: Required (JWT or Session)
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "username": "...",
+    "email": "...",
+    "role": "CLIENT",
+    "is_staff": false
+  }
+  ```
+
+---
+
+## Permissions Matrix
+
+| Risorsa | Azione | Cliente | Moderatore | Admin |
+| :--- | :--- | :---: | :---: | :---: |
+| **Prodotti** | Visualizzare | ✅ | ✅ | ✅ |
+| | Creare/Modificare/Eliminare | ❌ | ❌ | ✅ |
+| **Categorie** | Visualizzare | ✅ | ✅ | ✅ |
+| | Creare/Modificare/Eliminare | ❌ | ❌ | ✅ |
+| **Recensioni** | Leggere (Tutte) | ✅ | ✅ | ✅ |
+| | Scrivere (Proprie) | ✅ | ✅ | ✅ |
+| | Modificare (Stato/Modifica) | ❌ | ✅ (Solo Stato) | ✅ |
+| | Eliminare | ❌ | ❌ | ✅ |
+| **Utenti** | Registrarsi | ✅ | ✅ | ✅ |
+| | Gestire (Ruoli/Status) | ❌ | ❌ | ✅ |
+
 ## Catalog
 ### Categories
 - `GET /api/categories/`
