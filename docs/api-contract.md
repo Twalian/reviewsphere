@@ -2,7 +2,7 @@
 
 Questo documento definisce i contratti per gli endpoint API. Verrà esteso e dettagliato mano a mano che le feature vengono implementate.
 
-## Auth (Persona 1)
+## Auth
 
 ### Login (Obtain Token)
 - **URL**: `/api/auth/token/`
