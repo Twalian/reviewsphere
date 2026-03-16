@@ -3,10 +3,93 @@
 Questo documento definisce i contratti per gli endpoint API. Verrà esteso e dettagliato mano a mano che le feature vengono implementate.
 
 ## Auth
-- `POST /api/auth/token/`
-  - Payload Auth
-- `POST /api/auth/token/refresh/`
-- `POST /api/auth/register/` (Da definire payload esatto con UI)
+
+### Login (Obtain Token)
+- **URL**: `/api/auth/token/`
+- **Method**: `POST`
+- **Request**:
+  ```json
+  {
+    "username": "...",
+    "password": "..."
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "refresh": "TOKEN_STR",
+    "access": "TOKEN_STR"
+  }
+  ```
+- **Note**: Decoded `access` token includes `user_id`, `username`, and `role`.
+
+### Token Refresh
+- **URL**: `/api/auth/token/refresh/`
+- **Method**: `POST`
+- **Request**:
+  ```json
+  {
+    "refresh": "REFRESH_TOKEN_STR"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "access": "NEW_ACCESS_TOKEN_STR"
+  }
+  ```
+
+### Register
+- **URL**: `/api/auth/register/`
+- **Method**: `POST`
+- **Request**:
+  ```json
+  {
+    "username": "...",
+    "email": "...",
+    "password": "..."
+  }
+  ```
+- **Response (201 Created)**:
+  ```json
+  {
+    "username": "...",
+    "email": "...",
+    "role": "CLIENT"
+  }
+  ```
+
+### Get My Profile
+- **URL**: `/api/auth/me/`
+- **Method**: `GET`
+- **Authentication**: Required (JWT or Session)
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "username": "...",
+    "email": "...",
+    "role": "CLIENT",
+    "is_staff": false
+  }
+  ```
+
+---
+
+## Permissions Matrix
+
+| Risorsa | Azione | Cliente | Moderatore | Admin |
+| :--- | :--- | :---: | :---: | :---: |
+| **Prodotti** | Visualizzare | ✅ | ✅ | ✅ |
+| | Creare/Modificare/Eliminare | ❌ | ❌ | ✅ |
+| **Categorie** | Visualizzare | ✅ | ✅ | ✅ |
+| | Creare/Modificare/Eliminare | ❌ | ❌ | ✅ |
+| **Recensioni** | Leggere (Tutte) | ✅ | ✅ | ✅ |
+| | Scrivere (Proprie) | ✅ | ✅ | ✅ |
+| | Modificare (Stato/Modifica) | ❌ | ✅ (Solo Stato) | ✅ |
+| | Eliminare | ❌ | ❌ | ✅ |
+| **Utenti** | Registrarsi | ✅ | ✅ | ✅ |
+| | Gestire (Ruoli/Status) | ❌ | ❌ | ✅ |
 
 ## Catalog
 ### Categories
