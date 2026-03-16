@@ -11,7 +11,7 @@ class Review(models.Model):
         HIDDEN = 'HIDDEN', 'Hidden'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title=models.CharField(max_length=20,blank=True)
+    title=models.CharField(max_length=100,blank=True)
     vote = models.IntegerField(
         validators=[
             MinValueValidator(1),
@@ -19,7 +19,7 @@ class Review(models.Model):
         ]
     )
 
-    description=models.TextField(max_length=200)
+    description=models.TextField(max_length=2000)
     date = models.DateTimeField(auto_now_add=True)
 
     status = models.CharField(
