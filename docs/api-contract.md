@@ -101,6 +101,21 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
 
 ### Products
 - `GET /api/products/`
+
+  **Response 200:**
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "iPhone 15",
+      "description": "Smartphone Apple",
+      "category": 1,
+      "brand": "Apple",
+      "price": "999.00",
+      "image_url": "",
+      "status": "available"
+    }
+  ]
 - `POST /api/products/`
 - `GET /api/products/{id}/`
 - `PUT/PATCH /api/products/{id}/`

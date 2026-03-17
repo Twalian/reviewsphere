@@ -14,19 +14,22 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
-from rest_framework_simplejwt.views import (
-    TokenRefreshView,
-)
-from users.views import CustomTokenObtainPairView
 
- 
+from django.contrib import admin
+from rest_framework.routers import DefaultRouter
+from catalog.views import CategoryViewSet, ProductViewSet
+from django.urls import path, include
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+router = DefaultRouter()
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('reviews/', include("reviews.urls")),
-    path('api/auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/auth/', include('users.urls')),
+    path('api/', include(router.urls)),
+    #TokenObtainPairView, TokenRefreshView = path per accedere come superuser usando il token
+    path('api/token/', TokenObtainPairView.as_view()),
+    path('api/token/refresh/', TokenRefreshView.as_view()),
 ]
+
