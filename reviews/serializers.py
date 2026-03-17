@@ -18,6 +18,9 @@ class ReviewListSerializer(serializers.ModelSerializer):
             "description",
             "date",
             "status",
+            "sentiment",   # nuovo campo
+            "pros",        # nuovo campo
+            "cons",        # nuovo campo
         ]
 
 

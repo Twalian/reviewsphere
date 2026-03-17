@@ -11,6 +11,25 @@ from reviews.models import Review
 from reviews.serializers import ReviewCreateSerializer, ReviewListSerializer
 
 
+# Funzioni placeholder AI
+def analyze_sentiment(text):
+    text_lower = text.lower()
+    if any(w in text_lower for w in ["ottimo", "buono", "fantastico", "perfetto"]):
+        return "positive"
+    elif any(w in text_lower for w in ["pessimo", "scarso", "deludente"]):
+        return "negative"
+    else:
+        return "neutral"
+
+def extract_pros_cons(text):
+    pros, cons = [], []
+    if "ottimo" in text.lower():
+        pros.append("Qualità")
+    if "pessimo" in text.lower():
+        cons.append("Esperienza negativa")
+    return pros, cons
+
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -21,6 +40,16 @@ def add_review(request):
     if serializer.is_valid():
         try:
             review = serializer.save(user=request.user)
+            # calcolo AI (sentiment e pros/cons)
+            sentiment = analyze_sentiment(review.description)
+            pros, cons = extract_pros_cons(review.description)
+
+            # aggiorno i campi AI
+            review.sentiment = sentiment
+            review.pros = pros
+            review.cons = cons
+            review.save()  # salvo le modifiche
+
 
             return Response(
             ReviewListSerializer(review).data,
