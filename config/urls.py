@@ -31,5 +31,6 @@ urlpatterns = [
     #TokenObtainPairView, TokenRefreshView = path per accedere come superuser usando il token
     path('api/token/', TokenObtainPairView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),
+    path('api/reviews/', include("reviews.urls")),
 ]
 
