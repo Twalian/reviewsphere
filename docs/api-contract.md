@@ -94,6 +94,15 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
 ## Catalog
 ### Categories
 - `GET /api/categories/`
+**Response 200:**
+  ```json
+  [
+      {
+          "id": 1,
+          "name": "Smartphone",
+          "description": "Smartphone e telefoni di ultima generazione"
+      }
+  ]
 - `POST /api/categories/`
 - `GET /api/categories/{id}/`
 - `PUT/PATCH /api/categories/{id}/`
