@@ -10,25 +10,7 @@ from catalog.models import Product
 from reviews.models import Review
 from reviews.serializers import ReviewCreateSerializer, ReviewListSerializer
 
-
-# Funzioni placeholder AI
-def analyze_sentiment(text):
-    text_lower = text.lower()
-    if any(w in text_lower for w in ["ottimo", "buono", "fantastico", "perfetto"]):
-        return "positive"
-    elif any(w in text_lower for w in ["pessimo", "scarso", "deludente"]):
-        return "negative"
-    else:
-        return "neutral"
-
-def extract_pros_cons(text):
-    pros, cons = [], []
-    if "ottimo" in text.lower():
-        pros.append("Qualità")
-    if "pessimo" in text.lower():
-        cons.append("Esperienza negativa")
-    return pros, cons
-
+from reviews.ai_providers import get_ai_provider, AIProviderError
 
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
@@ -41,20 +23,13 @@ def add_review(request):
         try:
             review = serializer.save(user=request.user)
             # calcolo AI (sentiment e pros/cons)
-            sentiment = analyze_sentiment(review.description)
-            pros, cons = extract_pros_cons(review.description)
+            provider = get_ai_provider()
+            sentiment_result = provider.analyze_sentiment(review.description)
+            review.sentiment = sentiment_result.sentiment
+            review.save()  
 
-            # aggiorno i campi AI
-            review.sentiment = sentiment
-            review.pros = pros
-            review.cons = cons
-            review.save()  # salvo le modifiche
-
-
-            return Response(
-            ReviewListSerializer(review).data,
-            status=status.HTTP_201_CREATED)
-
+        except AIProviderError:
+            pass
 
         except IntegrityError:
             return Response(
@@ -62,8 +37,12 @@ def add_review(request):
                 status=status.HTTP_409_CONFLICT
             )
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        return Response(
+            ReviewListSerializer(review).data,
+            status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
