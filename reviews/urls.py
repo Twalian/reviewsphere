@@ -9,7 +9,7 @@ urlpatterns = [
     path("mine/", views.get_reviews_list, name="get_reviews_list"),
     path("<int:product_id>/ai-summary/", views.get_product_AI_summary, name="Get_product_AI_summary"),
     path("<uuid:review_id>/update/",views.update_reviews),
-    path("<uuid:review_id>/delete/", views.delete_reviews)
+    path("<uuid:review_id>/delete/", views.delete_reviews),
     # Moderation endpoints
     path("<uuid:review_id>/approve/", views.approve_review, name="approve_review"),
     path("<uuid:review_id>/hide/", views.hide_review, name="hide_review"),
