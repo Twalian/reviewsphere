@@ -1,9 +1,10 @@
 from django.shortcuts import render
-from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework import generics, viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
 from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, UserSerializer
+from .permissions import IsAdmin
 
 # Create your views here.
 
@@ -22,3 +23,20 @@ class MeView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class UserAdminViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet per la gestione utenti da parte dell'Admin.
+    Accesso: solo ADMIN
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
+    
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated, IsAdmin]
+        else:
+            permission_classes = [IsAuthenticated, IsAdmin]
+        return [permission() for permission in permission_classes]
