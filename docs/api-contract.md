@@ -126,8 +126,8 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
 - `POST /api/reviews/add/`
 - `GET /api/reviews/<product_id>/`
 - `GET /api/reviews/<product_id>/ai-summary/`
-- `PUT/PATCH /api/reviews/{id}/`
-- `DELETE /api/reviews/{id}/`
+- `PATCH /api/reviews/{review_id}/`
+- `DELETE /api/reviews/{review_id}/`
 
 
 - `POST /api/reviews/add/`
