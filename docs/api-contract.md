@@ -122,10 +122,116 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
 - `DELETE /api/products/{id}/`
 
 ## Reviews
-- `GET /api/reviews/`
-- `POST /api/reviews/`
-- `GET /api/reviews/{id}/`
+- `GET /api/reviews/mine/`
+- `POST /api/reviews/add/`
+- `GET /api/reviews/<product_id>/`
+- `GET /api/reviews/<product_id>/ai-summary/`
 - `PUT/PATCH /api/reviews/{id}/`
 - `DELETE /api/reviews/{id}/`
-- `GET /api/reviews/mine/` (o simile, da definire)
-- `GET /api/products/{id}/reviews/` (o filtro query params `?product={id}`)
+
+
+- `POST /api/reviews/add/`
+### Crea Review
+- **URL**: `/api/reviews/add/`
+- **Method**: `POST`
+- **Authentication**: Required (JWT)
+- **Request**:
+```json
+  {
+    "title": "Maglia stupenda!",
+    "vote": 5,
+    "description": "...",
+    "product": 1
+  }
+```
+- **Response (201 Created)**:
+```json
+  {
+    "id": "uuid...",
+    "title": "Maglia stupenda!",
+    "vote": 5,
+    "username": "mario_rossi",
+    "product_name": "iPhone 15",
+    "description": "...",
+    "date": "2025-01-15T10:30:00Z",
+    "status": "PENDING",
+    "sentiment": "positive",
+    "pros": [],
+    "cons": []
+  }
+```
+- **Errors**:
+  - `400` → dati non validi
+  - `409` → "Hai già recensito questo prodotto"
+
+
+
+- `GET /api/reviews/mine/`
+### Restituisce tutte le reviews create dall'utente autenticato
+ **URL**: `/api/reviews/mine/`
+- **Method**: `GET`
+- **Authentication**: Required (JWT)
+**Response (200 OK)**:
+```json
+  [
+    {
+    "id": "uuid...",
+    "title": "Maglia stupenda!",
+    "vote": 5,
+    "username": "mario_rossi",
+    "product_name": "iPhone 15",
+    "description": "...",
+    "date": "2025-01-15T10:30:00Z",
+    "status": "PENDING",
+    "sentiment": "positive",
+    "pros": [],
+    "cons": []
+    }
+  ]
+  ```
+- **Errors**:
+  - `401` →"Autenticazione richiesta"
+
+
+-`GET /api/reviews/<product_id>/`
+### Restituisce le reviews di un prodotto tramite il product_id
+ **URL**: `/api/reviews/<product_id>/'
+- **Method**: `GET`
+- **Authentication**: Required (JWT)
+**Response (200 OK)**:
+```json
+  [
+    {
+    "id": "uuid...",
+    "title": "Maglia stupenda!",
+    "vote": 5,
+    "username": "mario_rossi",
+    "product_name": "iPhone 15",
+    "description": "...",
+    "date": "2025-01-15T10:30:00Z",
+    "status": "PENDING",
+    "sentiment": "positive",
+    "pros": [],
+    "cons": []
+    }
+  ]
+  ```
+- **Errors**:
+  - `404` → "Prodotto non trovato"
+
+- `GET /api/reviews/<product_id>/ai-summary/`
+### Restituisce il sommario generato da AI delle reviews di un prodotto tramite il product_id
+ **URL**: `/api/reviews/<product_id>/ai-summary/`
+- **Method**: `GET`
+- **Authentication**: Required (JWT)
+**Response (200 OK)**
+```json
+{
+  "summary": "Prodotto di ottima qualità, consigliato per uso quotidiano.",
+  "pros": ["Qualità eccellente", "Buon rapporto qualità-prezzo"],
+  "cons": ["Taglia piccola", "Colori limitati"]
+}
+```
+- **Errors**:
+  - `404` → " Nessuna recensione approvata per questo prodotto"
+  - `503` → "Servizio non disponibile"

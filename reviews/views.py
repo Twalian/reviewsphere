@@ -75,3 +75,36 @@ def get_reviews_list(request):
     serializer = ReviewListSerializer(reviews, many=True)
 
     return Response(serializer.data)
+
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_product_AI_summary(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    reviews = (
+        Review.objects
+        .filter(product=product, status=Review.ReviewStatus.APPROVED)
+        .select_related("user", "product")
+    )
+    lista: dict= [{"title": review.title, "description": review.description, "vote": review.vote} for review in reviews]
+    if not lista:
+        return Response({"error": "Nessuna recensione approvata per questo prodotto"}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        provider = get_ai_provider()          # 1. ottengo il provider
+        result=provider.synthesize_reviews(lista)        # 2. chiamo il metodo giusto
+
+
+    except AIProviderError:
+        return Response(
+                {"error": "Servizio non disponibile"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        
+
+    return Response({                     
+    "summary": result.summary,
+    "pros": result.pros,
+    "cons": result.cons}, status=status.HTTP_200_OK)
