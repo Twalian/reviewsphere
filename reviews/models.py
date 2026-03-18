@@ -40,6 +40,16 @@ class Review(models.Model):
         related_name="reviews"
     )
 
+    # CAMPi AI
+    sentiment = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="Risultato analisi AI: positive, negative, neutral"
+    )
+    pros = models.JSONField(default=list, blank=True, help_text="Elenco dei pro generati dall'AI")
+    cons = models.JSONField(default=list, blank=True, help_text="Elenco dei contro generati dall'AI")
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

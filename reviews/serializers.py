@@ -18,6 +18,9 @@ class ReviewListSerializer(serializers.ModelSerializer):
             "description",
             "date",
             "status",
+            "sentiment",   # nuovo campo
+            "pros",        # nuovo campo
+            "cons",        # nuovo campo
         ]
 
 
@@ -35,4 +38,15 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Il voto deve essere tra 1 e 5.")
         return value
 
-        
+class ReviewUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = [
+            "title",
+            "vote",
+            "description",
+        ]
+    def validate_vote(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Il voto deve essere tra 1 e 5.")
+        return value
