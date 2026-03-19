@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import Avg
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -35,7 +37,7 @@ class Product(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='draft'
+        default='inactive'
     )
 
     class Meta:
@@ -44,6 +46,16 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property                        # property/metodo custom
+    def average_rating(self):
+        result = self.reviews.filter(
+            status='APPROVED'
+        ).aggregate(avg=Avg('vote'))
+        return round(result['avg'], 2) if result['avg'] else None
+    
+"""@property significa che average_rating si usa come se fosse un campo (product.average_rating) ma in realtà è un metodo che calcola
+il valore al volo interrogando il DB — per questo non richiede migrazione."""
 
 
 

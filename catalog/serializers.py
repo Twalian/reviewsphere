@@ -9,6 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    average_rating = serializers.ReadOnlyField()
     class Meta:
         model = Product
         fields = [
@@ -19,5 +20,6 @@ class ProductSerializer(serializers.ModelSerializer):
             'brand',
             'price',
             'image_url',
-            'status'
+            'status',
+            'average_rating'
         ]
