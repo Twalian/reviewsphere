@@ -1,6 +1,36 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { login, getCurrentUser } from "../api/auth";
+import { useAuth } from "../hooks/useAuth";
 
 function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const { loginUser } = useAuth();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    try {
+      const tokens = await login(username, password);
+
+      localStorage.setItem("access_token", tokens.access);
+      localStorage.setItem("refresh_token", tokens.refresh);
+
+      const userData = await getCurrentUser();
+
+      loginUser(userData, tokens.access, tokens.refresh);
+
+      navigate("/");
+    } catch (error) {
+      alert("Login fallito");
+      console.error(error);
+    }
+  }
+
   return (
     <div>
       <Navbar />
@@ -33,12 +63,14 @@ function LoginPage() {
             Accedi a ReviewSphere
           </p>
 
-          <form>
+          <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: "16px" }}>
-              <label>Email</label>
+              <label>Username</label>
               <input
-                type="email"
-                placeholder="Inserisci la tua email"
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -54,7 +86,9 @@ function LoginPage() {
               <label>Password</label>
               <input
                 type="password"
-                placeholder="Inserisci la tua password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 style={{
                   width: "100%",
                   padding: "12px",
