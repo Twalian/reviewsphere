@@ -6,7 +6,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Q
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
-from rest_framework.permissions import IsAdminUser
+from users.permissions import IsAdmin
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -16,7 +17,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticatedOrReadOnly]
         else:
-            permission_classes=[IsAdminUser]
+            permission_classes = [IsAdmin]
         return [permission() for permission in permission_classes]
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -25,9 +26,16 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'status', 'brand']
 
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticatedOrReadOnly]
+        else:
+            permission_classes = [IsAdmin]
+        return [permission() for permission in permission_classes]
+
 #TOP RATED
     @action(detail=False, methods=['get'], url_path='top-rated',
-            permission_classes=[IsAdminUser])
+            permission_classes=[IsAdmin])
     def top_rated(self, request):
         top = Product.objects.annotate(
             avg_rating=Avg('reviews__vote',
@@ -38,7 +46,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     
 # WORST RATED
     @action(detail=False, methods=['get'], url_path='worst-rated',
-                permission_classes=[IsAdminUser])
+                permission_classes=[IsAdmin])
     def worst_rated(self, request):
         worst = Product.objects.annotate(
             avg_rating=Avg('reviews__vote',
