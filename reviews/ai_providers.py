@@ -21,6 +21,8 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 import os
 import logging
+import json
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
@@ -62,37 +64,22 @@ class AIProvider(ABC):
     def analyze_sentiment(self, text: str) -> SentimentResult:
         """
         Analyze the sentiment of a given text.
-        
-        Args:
-            text: The text to analyze
-            
-        Returns:
-            SentimentResult with sentiment, confidence, and optional emotions
         """
-        pass
+        raise NotImplementedError
     
     @abstractmethod
     def synthesize_reviews(self, reviews: List[Dict[str, Any]]) -> SynthesisResult:
         """
         Synthesize multiple reviews into a summary.
-        
-        Args:
-            reviews: List of review dictionaries with 'title', 'description', 'vote'
-            
-        Returns:
-            SynthesisResult with summary, themes, pros, cons, and sentiment
         """
-        pass
+        raise NotImplementedError
     
     @abstractmethod
     def is_available(self) -> bool:
         """
         Check if the provider is available and configured.
-        
-        Returns:
-            True if provider can be used, False otherwise
         """
-        pass
+        raise NotImplementedError
 
 
 class GeminiProvider(AIProvider):
@@ -102,36 +89,93 @@ class GeminiProvider(AIProvider):
     Requires GEMINI_API_KEY environment variable.
     """
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get('GEMINI_API_KEY')
-        self.model = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+        self.model_name = os.environ.get('GEMINI_MODEL', 'gemini-flash-latest')
+        if self.api_key:
+            genai.configure(api_key=self.api_key)
     
     def is_available(self) -> bool:
         return bool(self.api_key)
     
+    def _get_model(self):
+        return genai.GenerativeModel(self.model_name)
+
     def analyze_sentiment(self, text: str) -> SentimentResult:
         """
-        Analyze sentiment using Gemini API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
+        Analyze sentiment using Gemini API with JSON mode.
         """
-        raise AIProviderError(
-            "GeminiProvider.analyze_sentiment is not implemented yet. "
-            "Integrate the Gemini API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("Gemini API key not configured")
+
+        prompt = (
+            f"Analyze the sentiment of the following product review text. "
+            f"Return a JSON object with the following structure:\n"
+            f'{{"sentiment": "positive"|"negative"|"neutral", '
+            f'"confidence": float (0-1), '
+            f'"emotions": ["emotion1", "emotion2"]}}\n\n'
+            f"Review Text: {text}"
         )
+
+        try:
+            model = self._get_model()
+            response = model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            
+            data = json.loads(response.text)
+            return SentimentResult(
+                sentiment=data.get('sentiment', 'neutral'),
+                confidence=data.get('confidence', 0.5),
+                emotions=data.get('emotions', [])
+            )
+        except Exception as e:
+            logger.error(f"Gemini analyze_sentiment error: {str(e)}")
+            raise AIProviderError(f"AI Provider error: {str(e)}")
     
     def synthesize_reviews(self, reviews: List[Dict[str, Any]]) -> SynthesisResult:
         """
-        Synthesize reviews using Gemini API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
+        Synthesize reviews using Gemini API with JSON mode.
         """
-        raise AIProviderError(
-            "GeminiProvider.synthesize_reviews is not implemented yet. "
-            "Integrate the Gemini API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("Gemini API key not configured")
+
+        reviews_text = "\n---\n".join([
+            f"Title: {r.get('title')}\nVote: {r.get('vote')}/5\nText: {r.get('description')}" 
+            for r in reviews
+        ])
+
+        prompt = (
+            f"Synthesize the following product reviews into a coherent summary. "
+            f"Highlight key themes, pros, and cons mentioned by customers. "
+            f"Return a JSON object with the following structure:\n"
+            f'{{"summary": "A concise paragraph summary", '
+            f'"key_themes": ["theme1", "theme2"], '
+            f'"pros": ["pro1", "pro2"], '
+            f'"cons": ["con1", "con2"], '
+            f'"overall_sentiment": "positive"|"negative"|"neutral"}}\n\n'
+            f"Reviews:\n{reviews_text}"
         )
+
+        try:
+            model = self._get_model()
+            response = model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            
+            data = json.loads(response.text)
+            return SynthesisResult(
+                summary=data.get('summary', ''),
+                key_themes=data.get('key_themes', []),
+                pros=data.get('pros', []),
+                cons=data.get('cons', []),
+                overall_sentiment=data.get('overall_sentiment', 'neutral')
+            )
+        except Exception as e:
+            logger.error(f"Gemini synthesize_reviews error: {str(e)}")
+            raise AIProviderError(f"AI Provider error: {str(e)}")
 
 
 class OpenRouterProvider(AIProvider):
@@ -177,7 +221,7 @@ class OpenRouterProvider(AIProvider):
         )
 
 
-def get_ai_provider(provider_name: str = None) -> AIProvider:
+def get_ai_provider(provider_name: Optional[str] = None) -> AIProvider:
     """
     Factory function to get the configured AI provider.
     
