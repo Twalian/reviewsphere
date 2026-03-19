@@ -21,6 +21,9 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 import os
 import logging
+import json
+import requests
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
@@ -62,37 +65,22 @@ class AIProvider(ABC):
     def analyze_sentiment(self, text: str) -> SentimentResult:
         """
         Analyze the sentiment of a given text.
-        
-        Args:
-            text: The text to analyze
-            
-        Returns:
-            SentimentResult with sentiment, confidence, and optional emotions
         """
-        pass
+        raise NotImplementedError
     
     @abstractmethod
     def synthesize_reviews(self, reviews: List[Dict[str, Any]]) -> SynthesisResult:
         """
         Synthesize multiple reviews into a summary.
-        
-        Args:
-            reviews: List of review dictionaries with 'title', 'description', 'vote'
-            
-        Returns:
-            SynthesisResult with summary, themes, pros, cons, and sentiment
         """
-        pass
+        raise NotImplementedError
     
     @abstractmethod
     def is_available(self) -> bool:
         """
         Check if the provider is available and configured.
-        
-        Returns:
-            True if provider can be used, False otherwise
         """
-        pass
+        raise NotImplementedError
 
 
 class GeminiProvider(AIProvider):
@@ -102,36 +90,93 @@ class GeminiProvider(AIProvider):
     Requires GEMINI_API_KEY environment variable.
     """
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get('GEMINI_API_KEY')
-        self.model = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+        self.model_name = os.environ.get('GEMINI_MODEL', 'gemini-flash-latest')
+        if self.api_key:
+            genai.configure(api_key=self.api_key)
     
     def is_available(self) -> bool:
         return bool(self.api_key)
     
+    def _get_model(self):
+        return genai.GenerativeModel(self.model_name)
+
     def analyze_sentiment(self, text: str) -> SentimentResult:
         """
-        Analyze sentiment using Gemini API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
+        Analyze sentiment using Gemini API with JSON mode.
         """
-        raise AIProviderError(
-            "GeminiProvider.analyze_sentiment is not implemented yet. "
-            "Integrate the Gemini API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("Gemini API key not configured")
+
+        prompt = (
+            f"Analyze the sentiment of the following product review text. "
+            f"Return a JSON object with the following structure:\n"
+            f'{{"sentiment": "positive"|"negative"|"neutral", '
+            f'"confidence": float (0-1), '
+            f'"emotions": ["emotion1", "emotion2"]}}\n\n'
+            f"Review Text: {text}"
         )
+
+        try:
+            model = self._get_model()
+            response = model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            
+            data = json.loads(response.text)
+            return SentimentResult(
+                sentiment=data.get('sentiment', 'neutral'),
+                confidence=data.get('confidence', 0.5),
+                emotions=data.get('emotions', [])
+            )
+        except Exception as e:
+            logger.error(f"Gemini analyze_sentiment error: {str(e)}")
+            raise AIProviderError(f"AI Provider error: {str(e)}")
     
     def synthesize_reviews(self, reviews: List[Dict[str, Any]]) -> SynthesisResult:
         """
-        Synthesize reviews using Gemini API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
+        Synthesize reviews using Gemini API with JSON mode.
         """
-        raise AIProviderError(
-            "GeminiProvider.synthesize_reviews is not implemented yet. "
-            "Integrate the Gemini API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("Gemini API key not configured")
+
+        reviews_text = "\n---\n".join([
+            f"Title: {r.get('title')}\nVote: {r.get('vote')}/5\nText: {r.get('description')}" 
+            for r in reviews
+        ])
+
+        prompt = (
+            f"Synthesize the following product reviews into a coherent summary. "
+            f"Highlight key themes, pros, and cons mentioned by customers. "
+            f"Return a JSON object with the following structure:\n"
+            f'{{"summary": "A concise paragraph summary", '
+            f'"key_themes": ["theme1", "theme2"], '
+            f'"pros": ["pro1", "pro2"], '
+            f'"cons": ["con1", "con2"], '
+            f'"overall_sentiment": "positive"|"negative"|"neutral"}}\n\n'
+            f"Reviews:\n{reviews_text}"
         )
+
+        try:
+            model = self._get_model()
+            response = model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            
+            data = json.loads(response.text)
+            return SynthesisResult(
+                summary=data.get('summary', ''),
+                key_themes=data.get('key_themes', []),
+                pros=data.get('pros', []),
+                cons=data.get('cons', []),
+                overall_sentiment=data.get('overall_sentiment', 'neutral')
+            )
+        except Exception as e:
+            logger.error(f"Gemini synthesize_reviews error: {str(e)}")
+            raise AIProviderError(f"AI Provider error: {str(e)}")
 
 
 class OpenRouterProvider(AIProvider):
@@ -144,7 +189,7 @@ class OpenRouterProvider(AIProvider):
     Website: https://openrouter.ai
     """
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get('OPENROUTER_API_KEY')
         self.model = os.environ.get('OPENROUTER_MODEL', 'meta-llama/llama-3-8b-instruct')
         self.base_url = 'https://openrouter.ai/api/v1'
@@ -152,32 +197,95 @@ class OpenRouterProvider(AIProvider):
     def is_available(self) -> bool:
         return bool(self.api_key)
     
+    def _call_api(self, prompt: str) -> Dict[str, Any]:
+        """Helper to call OpenRouter API."""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://reviewsphere.com", # Required by OpenRouter
+            "X-Title": "ReviewSphere",
+        }
+        
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": {"type": "json_object"} # Some models support this
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            if response.status_code != 200:
+                logger.error(f"OpenRouter error {response.status_code}: {response.text}")
+            response.raise_for_status()
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return json.loads(content)
+        except Exception as e:
+            logger.error(f"OpenRouter API error: {str(e)}")
+            raise AIProviderError(f"OpenRouter Provider error: {str(e)}")
+
     def analyze_sentiment(self, text: str) -> SentimentResult:
         """
         Analyze sentiment using OpenRouter API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
         """
-        raise AIProviderError(
-            "OpenRouterProvider.analyze_sentiment is not implemented yet. "
-            "Integrate the OpenRouter API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("OpenRouter API key not configured")
+
+        prompt = (
+            f"Analyze the sentiment of the following product review text. "
+            f"Return ONLY a JSON object with this structure:\n"
+            f'{{"sentiment": "positive"|"negative"|"neutral", '
+            f'"confidence": float (0-1), '
+            f'"emotions": ["emotion1", "emotion2"]}}\n\n'
+            f"Review Text: {text}"
+        )
+
+        data = self._call_api(prompt)
+        return SentimentResult(
+            sentiment=data.get('sentiment', 'neutral'),
+            confidence=data.get('confidence', 0.5),
+            emotions=data.get('emotions', [])
         )
     
     def synthesize_reviews(self, reviews: List[Dict[str, Any]]) -> SynthesisResult:
         """
         Synthesize reviews using OpenRouter API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
         """
-        raise AIProviderError(
-            "OpenRouterProvider.synthesize_reviews is not implemented yet. "
-            "Integrate the OpenRouter API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("OpenRouter API key not configured")
+
+        reviews_text = "\n---\n".join([
+            f"Title: {r.get('title')}\nVote: {r.get('vote')}/5\nText: {r.get('description')}" 
+            for r in reviews
+        ])
+
+        prompt = (
+            f"Synthesize these product reviews into a summary. "
+            f"Include themes, pros, and cons. "
+            f"Return ONLY a JSON object with this structure:\n"
+            f'{{"summary": "string", "key_themes": ["str"], '
+            f'"pros": ["str"], "cons": ["str"], "overall_sentiment": "str"}}\n\n'
+            f"Reviews:\n{reviews_text}"
+        )
+
+        data = self._call_api(prompt)
+        return SynthesisResult(
+            summary=data.get('summary', ''),
+            key_themes=data.get('key_themes', []),
+            pros=data.get('pros', []),
+            cons=data.get('cons', []),
+            overall_sentiment=data.get('overall_sentiment', 'neutral')
         )
 
 
-def get_ai_provider(provider_name: str = None) -> AIProvider:
+def get_ai_provider(provider_name: Optional[str] = None) -> AIProvider:
     """
     Factory function to get the configured AI provider.
     
