@@ -22,6 +22,7 @@ from typing import List, Dict, Any, Optional
 import os
 import logging
 import json
+import requests
 import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
@@ -188,7 +189,7 @@ class OpenRouterProvider(AIProvider):
     Website: https://openrouter.ai
     """
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get('OPENROUTER_API_KEY')
         self.model = os.environ.get('OPENROUTER_MODEL', 'meta-llama/llama-3-8b-instruct')
         self.base_url = 'https://openrouter.ai/api/v1'
@@ -196,28 +197,91 @@ class OpenRouterProvider(AIProvider):
     def is_available(self) -> bool:
         return bool(self.api_key)
     
+    def _call_api(self, prompt: str) -> Dict[str, Any]:
+        """Helper to call OpenRouter API."""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://reviewsphere.com", # Required by OpenRouter
+            "X-Title": "ReviewSphere",
+        }
+        
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": {"type": "json_object"} # Some models support this
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            if response.status_code != 200:
+                logger.error(f"OpenRouter error {response.status_code}: {response.text}")
+            response.raise_for_status()
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            return json.loads(content)
+        except Exception as e:
+            logger.error(f"OpenRouter API error: {str(e)}")
+            raise AIProviderError(f"OpenRouter Provider error: {str(e)}")
+
     def analyze_sentiment(self, text: str) -> SentimentResult:
         """
         Analyze sentiment using OpenRouter API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
         """
-        raise AIProviderError(
-            "OpenRouterProvider.analyze_sentiment is not implemented yet. "
-            "Integrate the OpenRouter API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("OpenRouter API key not configured")
+
+        prompt = (
+            f"Analyze the sentiment of the following product review text. "
+            f"Return ONLY a JSON object with this structure:\n"
+            f'{{"sentiment": "positive"|"negative"|"neutral", '
+            f'"confidence": float (0-1), '
+            f'"emotions": ["emotion1", "emotion2"]}}\n\n'
+            f"Review Text: {text}"
+        )
+
+        data = self._call_api(prompt)
+        return SentimentResult(
+            sentiment=data.get('sentiment', 'neutral'),
+            confidence=data.get('confidence', 0.5),
+            emotions=data.get('emotions', [])
         )
     
     def synthesize_reviews(self, reviews: List[Dict[str, Any]]) -> SynthesisResult:
         """
         Synthesize reviews using OpenRouter API.
-        
-        Raises:
-            AIProviderError: When API integration is not implemented
         """
-        raise AIProviderError(
-            "OpenRouterProvider.synthesize_reviews is not implemented yet. "
-            "Integrate the OpenRouter API to enable this feature."
+        if not self.is_available():
+            raise AIProviderError("OpenRouter API key not configured")
+
+        reviews_text = "\n---\n".join([
+            f"Title: {r.get('title')}\nVote: {r.get('vote')}/5\nText: {r.get('description')}" 
+            for r in reviews
+        ])
+
+        prompt = (
+            f"Synthesize these product reviews into a summary. "
+            f"Include themes, pros, and cons. "
+            f"Return ONLY a JSON object with this structure:\n"
+            f'{{"summary": "string", "key_themes": ["str"], '
+            f'"pros": ["str"], "cons": ["str"], "overall_sentiment": "str"}}\n\n'
+            f"Reviews:\n{reviews_text}"
+        )
+
+        data = self._call_api(prompt)
+        return SynthesisResult(
+            summary=data.get('summary', ''),
+            key_themes=data.get('key_themes', []),
+            pros=data.get('pros', []),
+            cons=data.get('cons', []),
+            overall_sentiment=data.get('overall_sentiment', 'neutral')
         )
 
 
