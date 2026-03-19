@@ -125,14 +125,89 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
       "status": "available"
     }
   ]
+
+
 - `POST /api/products/`
 - `GET /api/products/{id}/`
 - `PUT/PATCH /api/products/{id}/`
 - `DELETE /api/products/{id}/`
 
+
+## Products Top-Rated
+- `GET /api/products/top-rated/`
+ **Response 200:**
+  ```json
+  [
+    {
+        "id": 2,
+        "name": "iPhone 15",
+        "description": "Smartphone Apple",
+        "category": 1,
+        "brand": "Apple",
+        "price": "999.00",
+        "image_url": "",
+        "status": "available",
+        "average_rating": 4.0
+    }
+]
+
+## Products Worst-Rated
+- `GET /api/products/worst-rated/`
+ **Response 200:**
+  ```json
+[
+    {
+        "id": 4,
+        "name": "Xiaomi Poco M6",
+        "description": "Budget Android scarso",
+        "category": 1,
+        "brand": "Xiaomi",
+        "price": "199.00",
+        "image_url": "",
+        "status": "available",
+        "average_rating": 1.5
+    },
+    {
+        "id": 2,
+        "name": "iPhone 15",
+        "description": "Smartphone Apple",
+        "category": 1,
+        "brand": "Apple",
+        "price": "999.00",
+        "image_url": "",
+        "status": "available",
+        "average_rating": 4.0
+    }
+]
+
 ## Reviews
 - `GET /api/reviews/mine/`
+
+
 - `POST /api/reviews/add/`
+ **Response 201:**
+  ```json
+  {
+      "id": "1cfe5fc6-9875-4e15-8415-db4be4a64ade",
+      "title": "iPhone perfetto",
+      "vote": 5,
+      "username": "client_test",
+      "product_name": "iPhone 15",
+      "description": "Schermo AMOLED fantastico, batteria eterna!",
+      "date": "2026-03-18T23:21:39.141350Z",
+      "status": "PENDING",
+      "sentiment": null,
+      "pros": [],
+      "cons": []
+  }
+
+  ```CASE: stesso utente aggiunte 2 recensioni sullo stesso prodotto:
+   **Response 409:**
+  ```json
+  {
+    "error": "Hai già recensito questo prodotto"
+  }
+
 - `GET /api/reviews/<product_id>/`
 - `GET /api/reviews/<product_id>/ai-summary/`
 - `PATCH /api/reviews/{review_id}/`
@@ -172,7 +247,6 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
 - **Errors**:
   - `400` → dati non validi
   - `409` → "Hai già recensito questo prodotto"
-
 
 
 - `GET /api/reviews/mine/`
@@ -227,6 +301,27 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
   ```
 - **Errors**:
   - `404` → "Prodotto non trovato"
+
+- `PATCH /api/reviews/{review_id}/approve/`
+**Authentication**: Required Bearer TOKEN_MOD as MODERATOR
+### Approva la review di un prodotto tramite il review_id
+**Response (200 OK)**:
+```json
+  [
+    {
+      "id": "1cfe5fc6-9875-4e15-8415-db4be4a64ade",
+      "title": "iPhone perfetto",
+      "vote": 5,
+      "username": "client_test",
+      "product_name": "iPhone 15",
+      "description": "Schermo AMOLED fantastico, batteria eterna!",
+      "date": "2026-03-18T23:21:39.141350Z",
+      "status": "APPROVED",
+      "sentiment": null,
+      "pros": [],
+      "cons": []
+    }
+  ]
 
 - `GET /api/reviews/<product_id>/ai-summary/`
 ### Restituisce il sommario generato da AI delle reviews di un prodotto tramite il product_id
