@@ -1,53 +1,97 @@
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { addReview, getReviewsByProduct } from "../api/reviews";
+import { getProducts } from "../api/products";
+import { getReviewsByProduct, addReview } from "../api/reviews";
 
 function ProductDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
+  const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [vote, setVote] = useState("");
   const [message, setMessage] = useState("");
-  const [reviews, setReviews] = useState([]);
-  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [messageType, setMessageType] = useState("");
 
   useEffect(() => {
-    async function loadReviews() {
+    async function loadData() {
       try {
-        const data = await getReviewsByProduct(id);
-        setReviews(data);
+        const products = await getProducts();
+
+        const selectedProduct = products.find((p) => p.id === Number(id));
+
+        setProduct(selectedProduct);
+
+        const reviewData = await getReviewsByProduct(id);
+        setReviews(reviewData);
       } catch (error) {
         console.error(error);
-      } finally {
-        setLoadingReviews(false);
       }
     }
 
-    loadReviews();
+    loadData();
   }, [id]);
 
   async function handleSubmit(e) {
     e.preventDefault();
 
     try {
-      const newReview = await addReview({
-        product: id,
+      await addReview({
+        product: Number(id),
         title,
         description,
         vote: Number(vote),
       });
 
-      setMessage("Recensione inviata con successo!");
+      setMessage(
+        "Recensione inviata con successo! Sarà visibile dopo la moderazione."
+      );
+      setMessageType("success");
       setTitle("");
       setDescription("");
       setVote("");
-      setReviews((prevReviews) => [newReview, ...prevReviews]);
+
+      const updatedReviews = await getReviewsByProduct(id);
+      setReviews(updatedReviews);
     } catch (error) {
-      setMessage("Errore durante l'invio della recensione");
+      setMessage("Errore durante l'invio della recensione.");
+      setMessageType("error");
       console.error(error);
     }
+  }
+
+  const approvedReviews = reviews.filter(
+    (review) => review.status === "APPROVED"
+  );
+
+  let averageRating = 0;
+
+  if (approvedReviews.length > 0) {
+    const totalVotes = approvedReviews.reduce(
+      (sum, review) => sum + review.vote,
+      0
+    );
+
+    averageRating = (totalVotes / approvedReviews.length).toFixed(1);
+  }
+
+  function getMessageStyle() {
+    if (messageType === "success") {
+      return {
+        backgroundColor: "#dcfce7",
+        color: "#166534",
+        border: "1px solid #86efac",
+      };
+    }
+
+    return {
+      backgroundColor: "#fee2e2",
+      color: "#991b1b",
+      border: "1px solid #fca5a5",
+    };
   }
 
   return (
@@ -55,133 +99,166 @@ function ProductDetailPage() {
       <Navbar />
 
       <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
-        <h1>Dettaglio Prodotto</h1>
+        <button
+          onClick={() => navigate("/products")}
+          style={{
+            marginBottom: "20px",
+            padding: "10px 16px",
+            backgroundColor: "#e5e7eb",
+            color: "#111827",
+            border: "none",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          ← Torna ai prodotti
+        </button>
 
-        <p>Product ID: {id}</p>
+        {!product && <p>Caricamento prodotto...</p>}
 
-        <h2 style={{ marginTop: "30px" }}>Scrivi una recensione</h2>
+        {product && (
+          <>
+            <h1>{product.name}</h1>
 
-        {message && (
-          <p
-            style={{
-              marginBottom: "15px",
-              color: message.includes("successo") ? "green" : "red",
-              fontWeight: "bold",
-            }}
-          >
-            {message}
-          </p>
-        )}
+            <p>
+              <strong>Marca:</strong> {product.brand}
+            </p>
 
-        <form onSubmit={handleSubmit} style={{ maxWidth: "500px" }}>
-          <div style={{ marginBottom: "15px" }}>
-            <label>Titolo</label>
-            <input
-              type="text"
-              placeholder="Titolo recensione"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+            <p>
+              <strong>Prezzo:</strong> {product.price}
+            </p>
+
+            <p>
+              <strong>Media recensioni:</strong>{" "}
+              {approvedReviews.length > 0
+                ? `⭐ ${averageRating} / 5 (${approvedReviews.length} recensioni)`
+                : "Nessuna recensione"}
+            </p>
+
+            <h2 style={{ marginTop: "40px" }}>Scrivi una recensione</h2>
+
+            {message && (
+              <div
+                style={{
+                  ...getMessageStyle(),
+                  padding: "12px 16px",
+                  borderRadius: "10px",
+                  marginBottom: "20px",
+                  fontWeight: "bold",
+                  maxWidth: "600px",
+                }}
+              >
+                {message}
+              </div>
+            )}
+
+            <form
+              onSubmit={handleSubmit}
               style={{
-                width: "100%",
-                padding: "10px",
-                marginTop: "5px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <label>Descrizione</label>
-            <textarea
-              placeholder="Scrivi la tua recensione"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                marginTop: "5px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "20px" }}>
-            <label>Voto</label>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={vote}
-              onChange={(e) => setVote(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                marginTop: "5px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            style={{
-              padding: "12px 20px",
-              backgroundColor: "#1e3a8a",
-              color: "white",
-              border: "none",
-              borderRadius: "10px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Invia recensione
-          </button>
-        </form>
-
-        <h2 style={{ marginTop: "40px", marginBottom: "20px" }}>
-          Recensioni del prodotto
-        </h2>
-
-        {loadingReviews ? (
-          <p>Caricamento recensioni...</p>
-        ) : reviews.length === 0 ? (
-          <p>Nessuna recensione per questo prodotto.</p>
-        ) : (
-          reviews.map((review) => (
-            <div
-              key={review.id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "12px",
-                padding: "16px",
-                marginBottom: "16px",
-                backgroundColor: "#fff",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                maxWidth: "600px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+                marginBottom: "40px",
               }}
             >
-              <h3 style={{ margin: "0 0 10px 0" }}>{review.title}</h3>
+              <input
+                type="text"
+                placeholder="Titolo recensione"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                style={{
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #ccc",
+                }}
+              />
 
-              <p>
-                <strong>Utente:</strong>{" "}
-                {review.username || review.user_username || review.user?.username || review.user}
-              </p>
+              <textarea
+                placeholder="Scrivi la tua recensione"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                rows="4"
+                style={{
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #ccc",
+                  resize: "vertical",
+                }}
+              />
 
-              <p>
-                <strong>Voto:</strong> {review.vote || review.rating}/5
-              </p>
+              <input
+                type="number"
+                min="1"
+                max="5"
+                placeholder="Voto da 1 a 5"
+                value={vote}
+                onChange={(e) => setVote(e.target.value)}
+                required
+                style={{
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #ccc",
+                  width: "160px",
+                }}
+              />
 
-              <p>
-                <strong>Descrizione:</strong> {review.description}
-              </p>
+              <button
+                type="submit"
+                style={{
+                  width: "220px",
+                  padding: "12px",
+                  backgroundColor: "#1e3a8a",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                }}
+              >
+                Invia recensione
+              </button>
+            </form>
 
-              <p>
-                <strong>Stato:</strong> {review.status}
-              </p>
-            </div>
-          ))
+            <h2 style={{ marginTop: "40px" }}>Recensioni</h2>
+
+            {approvedReviews.length === 0 && (
+              <p>Nessuna recensione approvata per questo prodotto.</p>
+            )}
+
+            {approvedReviews.map((review) => (
+              <div
+                key={review.id}
+                style={{
+                  border: "1px solid #ddd",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  marginTop: "12px",
+                  backgroundColor: "#fff",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                }}
+              >
+                <h3>{review.title}</h3>
+
+                <p>
+                  <strong>Utente:</strong>{" "}
+                  {review.username ||
+                    review.user_username ||
+                    review.user?.username ||
+                    review.user}
+                </p>
+
+                <p>
+                  <strong>Voto:</strong> {"⭐".repeat(review.vote)}
+                </p>
+
+                <p>{review.description}</p>
+              </div>
+            ))}
+          </>
         )}
       </div>
     </div>

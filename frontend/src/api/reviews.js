@@ -8,5 +8,7 @@ export async function addReview(reviewData) {
 }
 
 export async function getReviewsByProduct(productId) {
-  return apiRequest(`/reviews/product/${productId}/`);
+  return apiRequest(`/reviews/product/${productId}/`, {
+    skipAuth: true,
+  });
 }

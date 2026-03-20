@@ -10,6 +10,7 @@ function ModerationPage() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("ALL");
 
   useEffect(() => {
     async function loadReviews() {
@@ -67,6 +68,44 @@ function ModerationPage() {
   const hiddenReviews = reviews.filter(
     (review) => review.status === "HIDDEN"
   ).length;
+
+  const filteredReviews =
+    selectedFilter === "ALL"
+      ? reviews
+      : reviews.filter((review) => review.status === selectedFilter);
+
+  function filterButtonStyle(isActive) {
+    return {
+      padding: "10px 16px",
+      borderRadius: "10px",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: "bold",
+      backgroundColor: isActive ? "#1e3a8a" : "#e5e7eb",
+      color: isActive ? "white" : "#111827",
+    };
+  }
+
+  function getStatusStyle(status) {
+    if (status === "APPROVED") {
+      return {
+        backgroundColor: "#dcfce7",
+        color: "#166534",
+      };
+    }
+
+    if (status === "HIDDEN") {
+      return {
+        backgroundColor: "#fee2e2",
+        color: "#991b1b",
+      };
+    }
+
+    return {
+      backgroundColor: "#fef9c3",
+      color: "#854d0e",
+    };
+  }
 
   return (
     <div>
@@ -133,10 +172,47 @@ function ModerationPage() {
               </div>
             </div>
 
-            {reviews.length === 0 ? (
-              <p>Nessuna recensione disponibile.</p>
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                marginBottom: "25px",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                onClick={() => setSelectedFilter("ALL")}
+                style={filterButtonStyle(selectedFilter === "ALL")}
+              >
+                Tutte
+              </button>
+
+              <button
+                onClick={() => setSelectedFilter("PENDING")}
+                style={filterButtonStyle(selectedFilter === "PENDING")}
+              >
+                Pending
+              </button>
+
+              <button
+                onClick={() => setSelectedFilter("APPROVED")}
+                style={filterButtonStyle(selectedFilter === "APPROVED")}
+              >
+                Approved
+              </button>
+
+              <button
+                onClick={() => setSelectedFilter("HIDDEN")}
+                style={filterButtonStyle(selectedFilter === "HIDDEN")}
+              >
+                Hidden
+              </button>
+            </div>
+
+            {filteredReviews.length === 0 ? (
+              <p>Nessuna recensione disponibile per questo filtro.</p>
             ) : (
-              reviews.map((review) => (
+              filteredReviews.map((review) => (
                 <div
                   key={review.id}
                   style={{
@@ -152,12 +228,17 @@ function ModerationPage() {
 
                   <p>
                     <strong>Prodotto:</strong>{" "}
-                    {review.product_name || review.product?.name || review.product}
+                    {review.product_name ||
+                      review.product?.name ||
+                      review.product}
                   </p>
 
                   <p>
                     <strong>Utente:</strong>{" "}
-                    {review.username || review.user_username || review.user?.username || review.user}
+                    {review.username ||
+                      review.user_username ||
+                      review.user?.username ||
+                      review.user}
                   </p>
 
                   <p>
@@ -168,23 +249,25 @@ function ModerationPage() {
                     <strong>Stato:</strong>{" "}
                     <span
                       style={{
+                        ...getStatusStyle(review.status),
                         padding: "4px 10px",
-                        borderRadius: "8px",
-                        color: "white",
+                        borderRadius: "999px",
                         fontWeight: "bold",
-                        backgroundColor:
-                          review.status === "APPROVED"
-                            ? "#15803d"
-                            : review.status === "HIDDEN"
-                            ? "#b91c1c"
-                            : "#ca8a04",
+                        fontSize: "14px",
+                        display: "inline-block",
                       }}
                     >
                       {review.status}
                     </span>
                   </p>
 
-                  <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      display: "flex",
+                      gap: "10px",
+                    }}
+                  >
                     <button
                       onClick={() => handleApprove(review.id)}
                       disabled={review.status === "APPROVED"}
@@ -196,7 +279,9 @@ function ModerationPage() {
                         border: "none",
                         borderRadius: "10px",
                         cursor:
-                          review.status === "APPROVED" ? "not-allowed" : "pointer",
+                          review.status === "APPROVED"
+                            ? "not-allowed"
+                            : "pointer",
                         fontWeight: "bold",
                         boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
                         opacity: review.status === "APPROVED" ? 0.7 : 1,
@@ -216,7 +301,9 @@ function ModerationPage() {
                         border: "none",
                         borderRadius: "10px",
                         cursor:
-                          review.status === "HIDDEN" ? "not-allowed" : "pointer",
+                          review.status === "HIDDEN"
+                            ? "not-allowed"
+                            : "pointer",
                         fontWeight: "bold",
                         boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
                         opacity: review.status === "HIDDEN" ? 0.7 : 1,

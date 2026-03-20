@@ -4,33 +4,9 @@ import Navbar from "../components/Navbar";
 import { getProducts } from "../api/products";
 
 function ProductsPage() {
-  const mockProducts = [
-    {
-      id: 1,
-      name: "iPhone 14",
-      brand: "Apple",
-      category: "Smartphone",
-      price: "899€",
-    },
-    {
-      id: 2,
-      name: "Galaxy S24",
-      brand: "Samsung",
-      category: "Smartphone",
-      price: "799€",
-    },
-    {
-      id: 3,
-      name: "Dell XPS 13",
-      brand: "Dell",
-      category: "Laptop",
-      price: "1199€",
-    },
-  ];
-
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [usingMockData, setUsingMockData] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,8 +15,8 @@ function ProductsPage() {
         const data = await getProducts();
         setProducts(data);
       } catch (err) {
-        setProducts(mockProducts);
-        setUsingMockData(true);
+        setError("Errore nel caricamento dei prodotti");
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -59,13 +35,15 @@ function ProductsPage() {
           Catalogo prodotti ReviewSphere
         </p>
 
-        {usingMockData && (
-          <p style={{ color: "#b45309", marginBottom: "20px" }}>
-            API prodotti non ancora disponibile: visualizzazione dati demo.
-          </p>
+        {loading && <p>Caricamento prodotti...</p>}
+
+        {!loading && error && (
+          <p style={{ color: "red", marginBottom: "20px" }}>{error}</p>
         )}
 
-        {loading && <p>Caricamento prodotti...</p>}
+        {!loading && !error && products.length === 0 && (
+          <p>Nessun prodotto disponibile.</p>
+        )}
 
         <div
           style={{
@@ -75,6 +53,7 @@ function ProductsPage() {
           }}
         >
           {!loading &&
+            !error &&
             products.map((product) => (
               <div
                 key={product.id}

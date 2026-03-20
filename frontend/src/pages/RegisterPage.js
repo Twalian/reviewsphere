@@ -1,6 +1,40 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { register } from "../api/auth";
 
 function RegisterPage() {
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    try {
+      await register({
+        username,
+        email,
+        password,
+      });
+
+      setMessage("Registrazione completata con successo!");
+      setUsername("");
+      setEmail("");
+      setPassword("");
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (error) {
+      setMessage("Errore durante la registrazione");
+      console.error(error);
+    }
+  }
+
   return (
     <div>
       <Navbar />
@@ -35,12 +69,26 @@ function RegisterPage() {
             Crea un account su ReviewSphere
           </p>
 
-          <form>
+          {message && (
+            <p
+              style={{
+                marginBottom: "16px",
+                color: message.includes("successo") ? "green" : "red",
+                fontWeight: "bold",
+              }}
+            >
+              {message}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: "16px" }}>
               <label>Username</label>
               <input
                 type="text"
                 placeholder="Inserisci username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -57,6 +105,8 @@ function RegisterPage() {
               <input
                 type="email"
                 placeholder="Inserisci email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -73,6 +123,8 @@ function RegisterPage() {
               <input
                 type="password"
                 placeholder="Inserisci password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 style={{
                   width: "100%",
                   padding: "12px",

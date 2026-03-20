@@ -2,13 +2,14 @@ const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 export async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem("access_token");
+  const skipAuth = options.skipAuth || false;
 
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
   };
 
-  if (token) {
+  if (token && !skipAuth) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
