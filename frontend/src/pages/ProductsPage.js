@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { getProducts } from "../api/products";
 
@@ -30,6 +31,7 @@ function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [usingMockData, setUsingMockData] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadProducts() {
@@ -115,6 +117,7 @@ function ProductsPage() {
                 </p>
 
                 <button
+                  onClick={() => navigate(`/products/${product.id}`)}
                   style={{
                     width: "100%",
                     padding: "12px",

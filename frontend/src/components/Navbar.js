@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 function Navbar() {
-  const { user, logoutUser } = useAuth();
+  const { user } = useAuth();
+
+  const role = user?.role;
 
   return (
     <nav
@@ -27,7 +29,7 @@ function Navbar() {
         ReviewSphere
       </Link>
 
-      <div style={{ display: "flex", gap: "18px", alignItems: "center" }}>
+      <div style={{ display: "flex", gap: "18px" }}>
         <Link to="/" style={{ color: "white", textDecoration: "none" }}>
           Home
         </Link>
@@ -39,8 +41,7 @@ function Navbar() {
           Prodotti
         </Link>
 
-        {/* Moderation visibile solo a MODERATOR o ADMIN */}
-        {user && (user.role === "MODERATOR" || user.role === "ADMIN") && (
+        {(role === "ADMIN" || role === "MODERATOR") && (
           <Link
             to="/moderation"
             style={{ color: "white", textDecoration: "none" }}
@@ -49,48 +50,16 @@ function Navbar() {
           </Link>
         )}
 
-        {/* Se utente NON loggato */}
-        {!user && (
-          <>
-            <Link
-              to="/login"
-              style={{ color: "white", textDecoration: "none" }}
-            >
-              Login
-            </Link>
+        <Link to="/login" style={{ color: "white", textDecoration: "none" }}>
+          Login
+        </Link>
 
-            <Link
-              to="/register"
-              style={{ color: "white", textDecoration: "none" }}
-            >
-              Registrati
-            </Link>
-          </>
-        )}
-
-        {/* Se utente loggato */}
-        {user && (
-          <>
-            <span style={{ fontSize: "14px", opacity: 0.9 }}>
-              {user.username} ({user.role})
-            </span>
-
-            <button
-              onClick={logoutUser}
-              style={{
-                backgroundColor: "white",
-                color: "#1e3a8a",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
-              Logout
-            </button>
-          </>
-        )}
+        <Link
+          to="/register"
+          style={{ color: "white", textDecoration: "none" }}
+        >
+          Registrati
+        </Link>
       </div>
     </nav>
   );
