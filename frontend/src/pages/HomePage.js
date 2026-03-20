@@ -1,8 +1,12 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 function HomePage() {
+  const { user } = useAuth();
+  const role = user?.role;
+
   return (
     <div>
       <Navbar />
@@ -55,6 +59,7 @@ function HomePage() {
               display: "flex",
               gap: "16px",
               justifyContent: "center",
+              flexWrap: "wrap",
             }}
           >
             <Link
@@ -71,20 +76,39 @@ function HomePage() {
               Vai ai prodotti
             </Link>
 
-            <Link
-              to="/login"
-              style={{
-                padding: "14px 24px",
-                backgroundColor: "white",
-                color: "#1e3a8a",
-                border: "2px solid #1e3a8a",
-                borderRadius: "10px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              Accedi
-            </Link>
+            {!user && (
+              <Link
+                to="/login"
+                style={{
+                  padding: "14px 24px",
+                  backgroundColor: "white",
+                  color: "#1e3a8a",
+                  border: "2px solid #1e3a8a",
+                  borderRadius: "10px",
+                  textDecoration: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Accedi
+              </Link>
+            )}
+
+            {(role === "MODERATOR" || role === "ADMIN") && (
+              <Link
+                to="/moderation"
+                style={{
+                  padding: "14px 24px",
+                  backgroundColor: "white",
+                  color: "#1e3a8a",
+                  border: "2px solid #1e3a8a",
+                  borderRadius: "10px",
+                  textDecoration: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Vai alla moderazione
+              </Link>
+            )}
           </div>
         </div>
       </div>
