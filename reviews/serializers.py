@@ -7,6 +7,8 @@ class ReviewListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     product_name = serializers.CharField(source="product.name", read_only=True)
 
+    helpful_count = serializers.IntegerField(source="helpful_votes.count", read_only=True)
+
     class Meta:
         model = Review
         fields = [
@@ -18,9 +20,10 @@ class ReviewListSerializer(serializers.ModelSerializer):
             "description",
             "date",
             "status",
-            "sentiment",   # nuovo campo
-            "pros",        # nuovo campo
-            "cons",        # nuovo campo
+            "sentiment",
+            "pros",
+            "cons",
+            "helpful_count",
         ]
 
 

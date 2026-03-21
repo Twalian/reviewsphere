@@ -162,15 +162,22 @@ def approve_review(request, review_id):
     )
 
 
-@api_view(["PATCH"])
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated, IsModeratorOrAdmin])
-def hide_review(request, review_id):
-    """Hide a review - hides it from public view."""
+@permission_classes([IsAuthenticated, IsClient])
+def toggle_review_helpful(request, review_id):
+    """Toggle a 'helpful' vote for a review."""
     review = get_object_or_404(Review, id=review_id)
-    review.status = Review.ReviewStatus.HIDDEN
-    review.save()
-    return Response(
-        ReviewListSerializer(review).data,
-        status=status.HTTP_200_OK
+    
+    from reviews.models import ReviewHelpfulVote
+    
+    vote, created = ReviewHelpfulVote.objects.get_or_create(
+        review=review,
+        user=request.user
     )
+    
+    if not created:
+        vote.delete()
+        return Response({"message": "Vote removed", "helpful": False}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "Vote added", "helpful": True}, status=status.HTTP_201_CREATED)
