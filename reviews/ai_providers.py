@@ -47,6 +47,13 @@ class SynthesisResult:
     overall_sentiment: str
 
 
+@dataclass
+class ComparisonResult:
+    """Result of product comparison."""
+    comparison: str
+    winner_recommendation: str
+
+
 class AIProviderError(Exception):
     """Exception raised when AI provider is not available or not implemented."""
     pass
@@ -72,6 +79,13 @@ class AIProvider(ABC):
     def synthesize_reviews(self, reviews: List[Dict[str, Any]]) -> SynthesisResult:
         """
         Synthesize multiple reviews into a summary.
+        """
+        raise NotImplementedError
+    
+    @abstractmethod
+    def compare_products(self, products_data: List[Dict[str, Any]]) -> ComparisonResult:
+        """
+        Compare two or more products based on their data and reviews.
         """
         raise NotImplementedError
     
@@ -178,6 +192,41 @@ class GeminiProvider(AIProvider):
             logger.error(f"Gemini synthesize_reviews error: {str(e)}")
             raise AIProviderError(f"AI Provider error: {str(e)}")
 
+    def compare_products(self, products_data: List[Dict[str, Any]]) -> ComparisonResult:
+        """Compare products using Gemini."""
+        if not self.is_available():
+            raise AIProviderError("Gemini API key not configured")
+
+        try:
+            comparison_context = ""
+            for p in products_data:
+                comparison_context += f"Product: {p['name']}\n"
+                comparison_context += f"Avg Rating: {p['avg_rating']}\n"
+                comparison_context += f"AI Summary: {p['ai_summary']}\n"
+                comparison_context += "---\n"
+
+            prompt = (
+                f"Compare the following products based on their aggregated review summaries and ratings.\n"
+                f"Identify key differences, which one is better for which use case, and give a final recommendation.\n"
+                f"Return ONLY a JSON object with this structure:\n"
+                f'{{"comparison": "Detailed comparison text...", "winner_recommendation": "Product Name - reason"}}\n\n'
+                f"{comparison_context}"
+            )
+
+            model = self._get_model()
+            response = model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            data = json.loads(response.text)
+            return ComparisonResult(
+                comparison=data.get("comparison", ""),
+                winner_recommendation=data.get("winner_recommendation", "")
+            )
+        except Exception as e:
+            logger.error(f"Gemini compare_products error: {str(e)}")
+            raise AIProviderError(f"AI Provider error: {str(e)}")
+
 
 class OpenRouterProvider(AIProvider):
     """
@@ -230,6 +279,32 @@ class OpenRouterProvider(AIProvider):
         except Exception as e:
             logger.error(f"OpenRouter API error: {str(e)}")
             raise AIProviderError(f"OpenRouter Provider error: {str(e)}")
+
+    def compare_products(self, products_data: List[Dict[str, Any]]) -> ComparisonResult:
+        """Compare products using OpenRouter."""
+        if not self.is_available():
+            raise AIProviderError("OpenRouter API key not configured")
+
+        comparison_context = ""
+        for p in products_data:
+            comparison_context += f"Product: {p['name']}\n"
+            comparison_context += f"Avg Rating: {p['avg_rating']}\n"
+            comparison_context += f"AI Summary: {p['ai_summary']}\n"
+            comparison_context += "---\n"
+
+        prompt = (
+            f"Compare the following products based on their aggregated review summaries and ratings.\n"
+            f"Identify key differences, which one is better for which use case, and give a final recommendation.\n"
+            f"Return ONLY a JSON object with this structure:\n"
+            f'{{"comparison": "Detailed comparison text...", "winner_recommendation": "Product Name - reason"}}\n\n'
+            f"{comparison_context}"
+        )
+
+        data = self._call_api(prompt)
+        return ComparisonResult(
+            comparison=data.get("comparison", ""),
+            winner_recommendation=data.get("winner_recommendation", "")
+        )
 
     def analyze_sentiment(self, text: str) -> SentimentResult:
         """
