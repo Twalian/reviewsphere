@@ -13,11 +13,11 @@ from users.permissions import IsClient, IsModeratorOrAdmin
 
 from reviews.ai_providers import get_ai_provider, AIProviderError
 
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated, IsClient])
 def add_review(request):
-
     serializer = ReviewCreateSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -27,7 +27,7 @@ def add_review(request):
             provider = get_ai_provider()
             sentiment_result = provider.analyze_sentiment(review.description)
             review.sentiment = sentiment_result.sentiment
-            review.save()  
+            review.save()
 
         except AIProviderError:
             pass
@@ -40,7 +40,9 @@ def add_review(request):
 
         return Response(
             ReviewListSerializer(review).data,
-            status=status.HTTP_201_CREATED)
+            status=status.HTTP_201_CREATED
+        )
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -49,24 +51,29 @@ def add_review(request):
 @permission_classes([IsAuthenticated])
 def update_reviews(request, review_id):
     review = get_object_or_404(Review, id=review_id)
+
     if request.user != review.user:
-             return Response({"error": "Non autorizzato"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Non autorizzato"}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = ReviewUpdateSerializer(review, data=request.data, partial=True)
+
     if serializer.is_valid():
         serializer.save()
-        try:          
+
+        try:
             provider = get_ai_provider()
             sentiment_result = provider.analyze_sentiment(review.description)
             review.sentiment = sentiment_result.sentiment
-            review.save()  
+            review.save()
 
         except AIProviderError:
             pass
 
         return Response(
             ReviewListSerializer(review).data,
-            status=status.HTTP_202_ACCEPTED)
+            status=status.HTTP_202_ACCEPTED
+        )
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -75,19 +82,18 @@ def update_reviews(request, review_id):
 @permission_classes([IsAuthenticated])
 def delete_reviews(request, review_id):
     review = get_object_or_404(Review, id=review_id)
+
     if request.user != review.user and request.user.role != 'ADMIN':
         return Response({"error": "Non autorizzato"}, status=status.HTTP_403_FORBIDDEN)
 
     review.delete()
 
-    return Response(
-            status=status.HTTP_204_NO_CONTENT)
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_reviews_by_product(request, product_id):
-
     product = get_object_or_404(Product, id=product_id)
 
     reviews = (
@@ -97,7 +103,6 @@ def get_reviews_by_product(request, product_id):
     )
 
     serializer = ReviewListSerializer(reviews, many=True)
-
     return Response(serializer.data)
 
 
@@ -112,9 +117,21 @@ def get_reviews_list(request):
     )
 
     serializer = ReviewListSerializer(reviews, many=True)
-
     return Response(serializer.data)
 
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated, IsModeratorOrAdmin])
+def get_reviews_for_moderation(request):
+    reviews = (
+        Review.objects
+        .select_related("user", "product")
+        .all()
+    )
+
+    serializer = ReviewListSerializer(reviews, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
@@ -128,13 +145,25 @@ def get_product_AI_summary(request, product_id):
         .filter(product=product, status=Review.ReviewStatus.APPROVED)
         .select_related("user", "product")
     )
-    lista: dict= [{"title": review.title, "description": review.description, "vote": review.vote} for review in reviews]
-    if not lista:
-        return Response({"error": "Nessuna recensione approvata per questo prodotto"}, status=status.HTTP_404_NOT_FOUND)
-    try:
-        provider = get_ai_provider()          # 1. ottengo il provider
-        result=provider.synthesize_reviews(lista)        # 2. chiamo il metodo giusto
 
+    lista: dict = [
+        {
+            "title": review.title,
+            "description": review.description,
+            "vote": review.vote
+        }
+        for review in reviews
+    ]
+
+    if not lista:
+        return Response(
+            {"error": "Nessuna recensione approvata per questo prodotto"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    try:
+        provider = get_ai_provider()
+        result = provider.synthesize_reviews(lista)
 
     except AIProviderError:
         return Response(
@@ -156,6 +185,7 @@ def approve_review(request, review_id):
     review = get_object_or_404(Review, id=review_id)
     review.status = Review.ReviewStatus.APPROVED
     review.save()
+
     return Response(
         ReviewListSerializer(review).data,
         status=status.HTTP_200_OK
@@ -170,6 +200,7 @@ def hide_review(request, review_id):
     review = get_object_or_404(Review, id=review_id)
     review.status = Review.ReviewStatus.HIDDEN
     review.save()
+
     return Response(
         ReviewListSerializer(review).data,
         status=status.HTTP_200_OK
