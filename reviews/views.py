@@ -254,3 +254,23 @@ def resolve_report(request, report_id):
         'message': '✅ Segnalazione risolta con successo!',
         'report': ReportSerializer(report).data
     }, status=status.HTTP_200_OK)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated, IsClient])
+def toggle_review_helpful(request, review_id):
+    """Toggle a 'helpful' vote for a review."""
+    review = get_object_or_404(Review, id=review_id)
+    
+    from reviews.models import ReviewHelpfulVote
+    
+    vote, created = ReviewHelpfulVote.objects.get_or_create(
+        review=review,
+        user=request.user
+    )
+    
+    if not created:
+        vote.delete()
+        return Response({"message": "Vote removed", "helpful": False}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "Vote added", "helpful": True}, status=status.HTTP_201_CREATED)

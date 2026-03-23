@@ -100,4 +100,29 @@ class Report(models.Model):
 
     def __str__(self):
         return f"Report #{self.pk} - {self.review.title[:30]}"
+
+
+class ReviewHelpfulVote(models.Model):
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name="helpful_votes"
+    )
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="helpful_review_votes"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["review", "user"],
+                name="unique_review_user_helpful_vote"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} voted helpful on {self.review.id}"
     
