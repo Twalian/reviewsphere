@@ -13,5 +13,8 @@ urlpatterns = [
     # Moderation endpoints
     path("<uuid:review_id>/approve/", views.approve_review, name="approve_review"),
     path("<uuid:review_id>/hide/", views.hide_review, name="hide_review"),
+    path("<uuid:review_id>/report/", views.report_review, name='report-review'),
+    path("reports/", views.ModeratorReportListView.as_view(), name="report-list"),
+    path("reports/<int:report_id>/resolve/", views.resolve_report, name="resolve-report"),
     path("<uuid:review_id>/toggle-helpful/", views.toggle_review_helpful, name="toggle_helpful"),
 ]
