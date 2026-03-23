@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from reviews.models import Review
+from reviews.models import Review, Report
+from users.serializers import UserSerializer
 
 
 class ReviewListSerializer(serializers.ModelSerializer):
@@ -50,3 +51,16 @@ class ReviewUpdateSerializer(serializers.ModelSerializer):
         if value < 1 or value > 5:
             raise serializers.ValidationError("Il voto deve essere tra 1 e 5.")
         return value
+
+
+# Report
+class ReportSerializer(serializers.ModelSerializer):
+    reporter = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = Report
+        fields = [
+            'id', 'review', 'reason', 'status', 'created_at', 
+            'resolved_at', 'resolved_by', 'reporter'
+        ]
+        read_only_fields = ['review', 'status', 'created_at', 'resolved_at', 'resolved_by', 'reporter']

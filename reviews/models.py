@@ -1,6 +1,7 @@
 from django.db import models
 import uuid
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 
 # Create your models here.
 
@@ -60,4 +61,43 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.product} ({self.vote})"
+    
+#aggiunta classe Report
+class Report(models.Model):
+    class ReportStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        RESOLVED = 'RESOLVED', 'Resolved'
+    
+    review = models.ForeignKey(
+        Review, 
+        on_delete=models.CASCADE, 
+        related_name='reports'
+    )
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='created_reports'
+    )
+    reason = models.TextField(max_length=1000)
+    status = models.CharField(
+        max_length=10,
+        choices=ReportStatus.choices,
+        default=ReportStatus.PENDING
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='resolved_reports'
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['status', 'created_at'])]
+
+    def __str__(self):
+        return f"Report #{self.pk} - {self.review.title[:30]}"
     

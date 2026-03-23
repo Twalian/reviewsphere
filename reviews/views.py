@@ -7,8 +7,8 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
 from catalog.models import Product
-from reviews.models import Review
-from reviews.serializers import ReviewCreateSerializer, ReviewListSerializer,  ReviewUpdateSerializer
+from reviews.models import Review, Report
+from reviews.serializers import ReviewCreateSerializer, ReviewListSerializer,  ReviewUpdateSerializer, ReportSerializer
 from users.permissions import IsClient, IsModeratorOrAdmin
 
 from reviews.ai_providers import get_ai_provider, AIProviderError
@@ -147,7 +147,7 @@ def get_product_AI_summary(request, product_id):
     "pros": result.pros,
     "cons": result.cons}, status=status.HTTP_200_OK)
   
-# Moderation endpoints - accessible to Moderator and Admin
+# Moderation endpoints - accessibile a Moderatore e Admin
 @api_view(["PATCH"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated, IsModeratorOrAdmin])
@@ -174,3 +174,83 @@ def hide_review(request, review_id):
         ReviewListSerializer(review).data,
         status=status.HTTP_200_OK
     )
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated, IsClient])
+def report_review(request, review_id):
+    """
+    Client segnala recensione
+    POST /api/reviews/{UUID}/report/
+    """
+    review = get_object_or_404(Review, id=review_id)
+    
+    # Validazione: non segnalare propria recensione
+    if review.user == request.user:
+        return Response({
+            'error': 'Non puoi segnalare la tua recensione'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validazione: segnalazione già esistente
+    if Report.objects.filter(
+        review=review, 
+        reporter=request.user, 
+        status='PENDING'
+    ).exists():
+        return Response({
+            'error': 'Hai già una segnalazione pendente per questa recensione'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    serializer = ReportSerializer(data=request.data)
+    if serializer.is_valid():
+        report = serializer.save(review=review, reporter=request.user)
+        return Response({
+            'message': '✅ Segnalazione creata con successo!',
+            'report_id': str(report.id)
+        }, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from rest_framework.views import APIView
+from django.utils import timezone
+
+class ModeratorReportListView(APIView):
+    permission_classes = [IsAuthenticated, IsModeratorOrAdmin]
+
+    def get(self, request):
+        status_filter = request.query_params.get('status', 'PENDING')
+        reports = Report.objects.filter(status=status_filter).select_related('review', 'reporter')
+        serializer = ReportSerializer(reports, many=True)
+        return Response(serializer.data)
+
+@api_view(['PATCH'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated, IsModeratorOrAdmin])
+def resolve_report(request, report_id):
+    """
+    Moderator/Admin resolve a report
+    PATCH /api/reviews/reports/{id}/resolve/
+    """
+    report = get_object_or_404(Report, id=report_id)
+    
+    if report.status == 'RESOLVED':
+        return Response({'message': 'Report già risolto'}, status=status.HTTP_400_BAD_REQUEST)
+
+    action = request.data.get('action') # 'hide' or 'keep'
+    if action == 'hide':
+        report.review.status = Review.ReviewStatus.HIDDEN
+        report.review.save()
+    elif action == 'keep':
+        pass # just mark as resolved
+    else:
+        return Response({'error': 'Azione non valida. Usa "hide" o "keep".'}, status=status.HTTP_400_BAD_REQUEST)
+
+    report.status = 'RESOLVED'
+    report.resolved_at = timezone.now()
+    report.resolved_by = request.user
+    report.save()
+
+    return Response({
+        'message': '✅ Segnalazione risolta con successo!',
+        'report': ReportSerializer(report).data
+    }, status=status.HTTP_200_OK)
