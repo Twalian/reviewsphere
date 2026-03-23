@@ -162,6 +162,20 @@ def approve_review(request, review_id):
     )
 
 
+@api_view(["PATCH"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated, IsModeratorOrAdmin])
+def hide_review(request, review_id):
+    """Hide a review - hides it from public view."""
+    review = get_object_or_404(Review, id=review_id)
+    review.status = Review.ReviewStatus.HIDDEN
+    review.save()
+    return Response(
+        ReviewListSerializer(review).data,
+        status=status.HTTP_200_OK
+    )
+
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated, IsClient])
