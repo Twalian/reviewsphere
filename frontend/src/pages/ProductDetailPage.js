@@ -121,6 +121,28 @@ function ProductDetailPage() {
           <>
             <h1>{product.name}</h1>
 
+            {product.image_url && (
+              <img
+                src={product.image_url}
+                alt={product.name}
+                style={{
+                  width: "100%",
+                  maxWidth: "420px",
+                  height: "auto",
+                  borderRadius: "12px",
+                  marginTop: "16px",
+                  marginBottom: "20px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  objectFit: "cover",
+                }}
+              />
+            )}
+
+            <p style={{ marginTop: "10px", fontSize: "16px", color: "#374151" }}>
+              <strong>Descrizione:</strong>{" "}
+              {product.description || "Descrizione non disponibile"}
+            </p>
+
             <p>
               <strong>Marca:</strong> {product.brand}
             </p>

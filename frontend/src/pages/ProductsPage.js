@@ -65,21 +65,35 @@ function ProductsPage() {
                   backgroundColor: "#fff",
                 }}
               >
-                <div
-                  style={{
-                    height: "160px",
-                    backgroundColor: "#e5e7eb",
-                    borderRadius: "12px",
-                    marginBottom: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#6b7280",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Immagine prodotto
-                </div>
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    style={{
+                      width: "100%",
+                      height: "160px",
+                      objectFit: "cover",
+                      borderRadius: "12px",
+                      marginBottom: "16px",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      height: "160px",
+                      backgroundColor: "#e5e7eb",
+                      borderRadius: "12px",
+                      marginBottom: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#6b7280",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Immagine non disponibile
+                  </div>
+                )}
 
                 <h3 style={{ margin: "0 0 10px 0" }}>{product.name}</h3>
 
