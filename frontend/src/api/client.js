@@ -19,8 +19,33 @@ export async function apiRequest(endpoint, options = {}) {
   });
 
   if (!response.ok) {
-    throw new Error("API request failed");
+    let errorMessage = `API request failed: ${response.status}`;
+
+    try {
+      const errorData = await response.json();
+      errorMessage =
+        errorData.detail ||
+        errorData.message ||
+        JSON.stringify(errorData) ||
+        errorMessage;
+    } catch {
+      try {
+        const errorText = await response.text();
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      } catch {
+        // niente
+      }
+    }
+
+    throw new Error(errorMessage);
   }
 
+  
+
+  if (response.status === 204) {
+    return null;
+  }
   return response.json();
 }
