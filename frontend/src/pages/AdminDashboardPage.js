@@ -1,31 +1,47 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { getDashboardStats } from "../api/dashboard";
+import { getTopRatedProducts, getWorstRatedProducts } from "../api/products";
 
 function AdminDashboardPage() {
   const [stats, setStats] = useState(null);
+  const [topRated, setTopRated] = useState([]);
+  const [worstRated, setWorstRated] = useState([]);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboard();
   }, []);
 
   async function loadDashboard() {
+    setLoading(true);
     try {
-      const data = await getDashboardStats();
-      setStats(data);
+      const [statsData, topData, avoidData] = await Promise.all([
+        getDashboardStats(),
+        getTopRatedProducts(),
+        getWorstRatedProducts(),
+      ]);
+      setStats(statsData);
+      setTopRated(topData || []);
+      setWorstRated(avoidData || []);
     } catch (error) {
       console.error("Errore caricamento dashboard:", error);
       setMessage("Errore caricamento dashboard.");
+    } finally {
+      setLoading(false);
     }
   }
+
+  const maxTrend = stats?.trend ? Math.max(...stats.trend.map(t => t.count), 1) : 1;
 
   return (
     <div>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
-        <h1>Admin Dashboard</h1>
+      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
+        <h1 style={{ marginBottom: "10px" }}>Admin Dashboard</h1>
+        <p style={{ color: "#6b7280", marginBottom: "30px" }}>Statistiche e insights globali della piattaforma.</p>
 
         {message && (
           <div
@@ -36,162 +52,178 @@ function AdminDashboardPage() {
               backgroundColor: "#fee2e2",
               color: "#991b1b",
               fontWeight: "bold",
-              maxWidth: "900px",
+              maxWidth: "1000px",
             }}
           >
             {message}
           </div>
         )}
 
-        {!stats ? (
+        {loading ? (
           <p>Caricamento dashboard...</p>
         ) : (
-          <>
+          <div style={{ maxWidth: "1200px" }}>
+            {/* Summary Cards */}
             <div
               style={{
-                display: "flex",
-                gap: "16px",
-                flexWrap: "wrap",
-                marginBottom: "30px",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gap: "20px",
+                marginBottom: "40px",
               }}
             >
+              {[
+                { label: "Totale prodotti", value: stats?.summary?.total_products, color: "#3b82f6" },
+                { label: "Totale recensioni", value: stats?.summary?.total_reviews, color: "#10b981" },
+                { label: "Totale utenti", value: stats?.summary?.total_users, color: "#f59e0b" },
+              ].map((card, i) => (
+                <div
+                  key={i}
+                  style={{
+                    borderRadius: "16px",
+                    padding: "24px",
+                    backgroundColor: "white",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    borderLeft: `6px solid ${card.color}`,
+                  }}
+                >
+                  <h3 style={{ marginTop: 0, color: "#6b7280", fontSize: "14px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{card.label}</h3>
+                  <p style={{ fontSize: "32px", fontWeight: "bold", margin: 0, color: "#111827" }}>
+                    {card.value ?? 0}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: "30px" }}>
+              
+              {/* Trend Chart (CSS based) */}
               <div
                 style={{
-                  border: "1px solid #ddd",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  minWidth: "220px",
+                  borderRadius: "16px",
+                  padding: "24px",
                   backgroundColor: "white",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                 }}
               >
-                <h3 style={{ marginTop: 0 }}>Totale prodotti</h3>
-                <p style={{ fontSize: "28px", fontWeight: "bold", margin: 0 }}>
-                  {stats.summary?.total_products ?? 0}
-                </p>
+                <h2 style={{ marginTop: 0, borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>Trend Recensioni Mensile</h2>
+                {!stats?.trend || stats.trend.length === 0 ? (
+                  <p>Nessun dato trend disponibile.</p>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "flex-end", gap: "12px", height: "200px", paddingTop: "20px" }}>
+                    {stats.trend.map((item, index) => (
+                      <div key={index} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                        <div 
+                          title={`${item.count} recensioni`}
+                          style={{ 
+                            width: "100%", 
+                            backgroundColor: "#3b82f6", 
+                            height: `${(item.count / maxTrend) * 100}%`,
+                            borderRadius: "4px 4px 0 0",
+                            minHeight: item.count > 0 ? "4px" : "0"
+                          }} 
+                        />
+                        <span style={{ fontSize: "12px", color: "#6b7280", transform: "rotate(-45deg)", whiteSpace: "nowrap", marginTop: "10px" }}>
+                          {item.month || item.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
+              {/* Alerts Section */}
               <div
                 style={{
-                  border: "1px solid #ddd",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  minWidth: "220px",
+                  borderRadius: "16px",
+                  padding: "24px",
                   backgroundColor: "white",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                 }}
               >
-                <h3 style={{ marginTop: 0 }}>Totale recensioni</h3>
-                <p style={{ fontSize: "28px", fontWeight: "bold", margin: 0 }}>
-                  {stats.summary?.total_reviews ?? 0}
-                </p>
+                <h2 style={{ marginTop: 0, color: "#dc2626", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>⚠️ Prodotti Critici (Rating &lt; 2.5)</h2>
+                {!stats?.alerts || stats.alerts.length === 0 ? (
+                  <p>Nessun alert importante.</p>
+                ) : (
+                  stats.alerts.map((item, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        padding: "12px 0",
+                        borderBottom: "1px solid #f3f4f6",
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span>{item.product_name || item.name}</span>
+                      <strong style={{ color: "#dc2626" }}>★ {item.average_rating?.toFixed(1)}</strong>
+                    </div>
+                  ))
+                )}
               </div>
 
+              {/* Top Rated Products */}
               <div
                 style={{
-                  border: "1px solid #ddd",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  minWidth: "220px",
+                  borderRadius: "16px",
+                  padding: "24px",
                   backgroundColor: "white",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                 }}
               >
-                <h3 style={{ marginTop: 0 }}>Totale utenti</h3>
-                <p style={{ fontSize: "28px", fontWeight: "bold", margin: 0 }}>
-                  {stats.summary?.total_users ?? 0}
-                </p>
+                <h2 style={{ marginTop: 0, color: "#166534", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>🏆 Top 10 Prodotti Più Apprezzati</h2>
+                {topRated.length === 0 ? (
+                  <p>Dati non disponibili.</p>
+                ) : (
+                  topRated.map((prod, index) => (
+                    <div
+                      key={prod.id}
+                      style={{
+                        padding: "12px 0",
+                        borderBottom: "1px solid #f3f4f6",
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span>{index + 1}. {prod.name}</span>
+                      <strong style={{ color: "#16a34a" }}>★ {Number(prod.average_rating).toFixed(1)}</strong>
+                    </div>
+                  ))
+                )}
               </div>
+
+              {/* Worst Rated Products */}
+              <div
+                style={{
+                  borderRadius: "16px",
+                  padding: "24px",
+                  backgroundColor: "white",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <h2 style={{ marginTop: 0, color: "#991b1b", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>📉 Top 10 Prodotti Meno Apprezzati</h2>
+                {worstRated.length === 0 ? (
+                  <p>Dati non disponibili.</p>
+                ) : (
+                  worstRated.map((prod, index) => (
+                    <div
+                      key={prod.id}
+                      style={{
+                        padding: "12px 0",
+                        borderBottom: "1px solid #f3f4f6",
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span>{index + 1}. {prod.name}</span>
+                      <strong style={{ color: "#dc2626" }}>★ {Number(prod.average_rating).toFixed(1)}</strong>
+                    </div>
+                  ))
+                )}
+              </div>
+
             </div>
-
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "12px",
-                padding: "20px",
-                marginBottom: "30px",
-                backgroundColor: "white",
-                maxWidth: "900px",
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>Prodotti con alert</h2>
-
-              {!stats.alerts || stats.alerts.length === 0 ? (
-                <p>Nessun alert presente.</p>
-              ) : (
-                stats.alerts.map((item, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      borderBottom: "1px solid #eee",
-                      padding: "10px 0",
-                    }}
-                  >
-                    <strong>{item.product_name || item.name}</strong>{" "}
-                    {item.average_rating !== undefined &&
-                      `- Rating medio: ${item.average_rating}`}
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "12px",
-                padding: "20px",
-                marginBottom: "30px",
-                backgroundColor: "white",
-                maxWidth: "900px",
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>Top categorie</h2>
-
-              {!stats.top_categories || stats.top_categories.length === 0 ? (
-                <p>Nessuna categoria disponibile.</p>
-              ) : (
-                stats.top_categories.map((category, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      borderBottom: "1px solid #eee",
-                      padding: "10px 0",
-                    }}
-                  >
-                    <strong>{category.category_name || category.name}</strong>{" "}
-                    {category.review_count !== undefined &&
-                      `- Recensioni: ${category.review_count}`}
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "12px",
-                padding: "20px",
-                backgroundColor: "white",
-                maxWidth: "900px",
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>Trend recensioni</h2>
-
-              {!stats.trend || stats.trend.length === 0 ? (
-                <p>Nessun dato trend disponibile.</p>
-              ) : (
-                stats.trend.map((item, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      borderBottom: "1px solid #eee",
-                      padding: "10px 0",
-                    }}
-                  >
-                    <strong>{item.month || item.label}</strong>{" "}
-                    {item.count !== undefined && `- ${item.count} recensioni`}
-                  </div>
-                ))
-              )}
-            </div>
-          </>
+          </div>
         )}
       </div>
     </div>
