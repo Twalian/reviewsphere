@@ -47,8 +47,9 @@ export async function reportReview(reviewId, reason) {
   });
 }
 
-export async function getReviewReports() {
-  return await apiRequest("/reviews/reports/");
+export async function getReviewReports(status) {
+  const url = status ? `/reviews/reports/?status=${status}` : "/reviews/reports/";
+  return await apiRequest(url);
 }
 
 export async function resolveReviewReport(reportId, action) {
