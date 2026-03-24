@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { getProducts, updateProduct } from "../api/products";
+import { getCategories } from "../api/categories";
 
 function EditProductPage() {
   const { id } = useParams();
@@ -9,16 +10,29 @@ function EditProductPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("1");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [status, setStatus] = useState("available");
+  const [status, setStatus] = useState("AVAILABLE");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    loadProduct();
-  }, []);
+    async function init() {
+      await Promise.all([loadProduct(), fetchCategories()]);
+    }
+    init();
+  }, [id]);
+
+  async function fetchCategories() {
+    try {
+      const data = await getCategories();
+      setCategories(data || []);
+    } catch (error) {
+      console.error("Errore caricamento categorie:", error);
+    }
+  }
 
   async function loadProduct() {
     try {
@@ -32,11 +46,11 @@ function EditProductPage() {
 
       setName(product.name || "");
       setDescription(product.description || "");
-      setCategory(String(product.category || "1"));
+      setCategory(String(product.category || ""));
       setBrand(product.brand || "");
       setPrice(product.price || "");
       setImageUrl(product.image_url || "");
-      setStatus(product.status || "available");
+      setStatus(product.status || "AVAILABLE");
     } catch (error) {
       console.error("Errore caricamento prodotto", error);
       setMessage("Errore caricamento prodotto.");
@@ -64,6 +78,7 @@ function EditProductPage() {
       setMessage(error.message || "Errore durante la modifica del prodotto.");
     }
   }
+
 
   return (
     <div>
@@ -152,10 +167,11 @@ function EditProductPage() {
               width: "220px",
             }}
           >
-            <option value="1">Smartphone</option>
-            <option value="2">Computer</option>
-            <option value="3">Tablet</option>
-            <option value="4">Accessori</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
           </select>
 
           <input
@@ -209,10 +225,11 @@ function EditProductPage() {
               width: "220px",
             }}
           >
-            <option value="available">Available</option>
-            <option value="inactive">Inactive</option>
-            <option value="out_of_order">Out of Order</option>
+            <option value="AVAILABLE">Available</option>
+            <option value="OUT_OF_STOCK">Out of Stock</option>
+            <option value="DISCONTINUED">Discontinued</option>
           </select>
+
 
           <button
             type="submit"
