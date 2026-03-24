@@ -125,7 +125,9 @@ function AdminDashboardPage() {
                           }} 
                         />
                         <span style={{ fontSize: "12px", color: "#6b7280", transform: "rotate(-45deg)", whiteSpace: "nowrap", marginTop: "10px" }}>
-                          {item.month || item.label}
+                          {item.month 
+                            ? new Date(item.month).toLocaleString("it-IT", { month: "short", year: "numeric" }) 
+                            : item.label}
                         </span>
                       </div>
                     ))}
