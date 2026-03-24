@@ -9,10 +9,19 @@ function ProductsPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  function getCategoryLabel(category) {
+    if (category === 1) return "Smartphone";
+    if (category === 2) return "Computer";
+    if (category === 3) return "Tablet";
+    if (category === 4) return "Accessori";
+    return category;
+  }
+
   useEffect(() => {
     async function loadProducts() {
       try {
         const data = await getProducts();
+        console.log("PRODUCTS FROM API:", data);
         setProducts(data);
       } catch (err) {
         setError("Errore nel caricamento dei prodotti");
@@ -65,21 +74,35 @@ function ProductsPage() {
                   backgroundColor: "#fff",
                 }}
               >
-                <div
-                  style={{
-                    height: "160px",
-                    backgroundColor: "#e5e7eb",
-                    borderRadius: "12px",
-                    marginBottom: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#6b7280",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Immagine prodotto
-                </div>
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    style={{
+                      width: "100%",
+                      height: "160px",
+                      objectFit: "cover",
+                      borderRadius: "12px",
+                      marginBottom: "16px",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      height: "160px",
+                      backgroundColor: "#e5e7eb",
+                      borderRadius: "12px",
+                      marginBottom: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#6b7280",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Immagine non disponibile
+                  </div>
+                )}
 
                 <h3 style={{ margin: "0 0 10px 0" }}>{product.name}</h3>
 
@@ -88,7 +111,7 @@ function ProductsPage() {
                 </p>
 
                 <p style={{ margin: "6px 0" }}>
-                  <strong>Categoria:</strong> {product.category}
+                  <strong>Categoria:</strong> {getCategoryLabel(product.category)}
                 </p>
 
                 <p style={{ margin: "6px 0 16px 0" }}>
