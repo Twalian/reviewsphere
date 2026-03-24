@@ -41,3 +41,11 @@ export async function compareProducts(productIds) {
     body: JSON.stringify({ product_ids: productIds }),
   });
 }
+
+export async function getTopRatedProducts() {
+  return await apiRequest("/products/top-rated/");
+}
+
+export async function getWorstRatedProducts() {
+  return await apiRequest("/products/worst-rated/");
+}
