@@ -101,7 +101,7 @@ DELETE /api/users/admin/2/
 ```
 GET /api/products/
 ```
-Filtri disponibili: `?category=1`, `?status=available`, `?brand=Apple`
+Filtri disponibili: `?category=1`, `?status=AVAILABLE`, `?brand=Apple`
 
 ### 10. Dettaglio prodotto *(nessun token)*
 ```
@@ -121,9 +121,19 @@ Body:
   "brand": "BrandName",
   "price": "299.99",
   "image_url": "https://example.com/img.jpg",
-  "status": "available"
+  "status": "AVAILABLE"
 }
 ```
+
+### 11b. Confronto Prodotti AI *(token CLIENT)*
+```
+POST /api/products/compare/
+```
+Body:
+```json
+{ "product_ids": [2, 5, 10] }
+```
+> ⚠️ Fornisci almeno due ID. Restituisce un testo di confronto e una raccomandazione.
 
 ### 12. Modifica prodotto *(token ADMIN)*
 ```
@@ -249,6 +259,12 @@ GET /api/reviews/4/ai-summary/
 ```
 > ⚠️ Richiede chiave API nel `.env`. Se non configurata → `503 Service Unavailable`.
 
+### 28b. Lista Segnalazioni (Reports) *(token MODERATOR o ADMIN)*
+```
+GET /api/reviews/reports/
+```
+Filtri: `?status=PENDING` o `?status=RESOLVED`
+
 ---
 
 ## 📊 Dashboard Admin (`/api/dashboard-stats/`)
@@ -267,19 +283,23 @@ Risposta include:
 
 ## 🔑 Riepilogo permessi
 
-| Endpoint                        | Nessun token | CLIENT | MODERATOR | ADMIN |
-|---------------------------------|:---:|:---:|:---:|:---:|
-| GET prodotti / categorie        | ✅  | ✅  | ✅  | ✅  |
-| GET recensioni prodotto         | ✅  | ✅  | ✅  | ✅  |
-| POST register                   | ✅  | ✅  | ✅  | ✅  |
-| POST token                      | ✅  | ✅  | ✅  | ✅  |
-| GET /me                         | ❌  | ✅  | ✅  | ✅  |
-| GET /mine                       | ❌  | ✅  | ❌  | ❌  |
-| POST add review                 | ❌  | ✅  | ❌  | ❌  |
-| POST report                     | ❌  | ✅  | ❌  | ❌  |
-| PATCH update / DELETE review    | ❌  | ✅ (propria) | ❌  | ✅  |
-| approve / hide review           | ❌  | ❌  | ✅  | ✅  |
-| CRUD prodotti / categorie       | ❌  | ❌  | ❌  | ✅  |
-| top-rated / worst-rated         | ❌  | ❌  | ❌  | ✅  |
-| dashboard-stats                 | ❌  | ❌  | ❌  | ✅  |
-| /api/users/admin/               | ❌  | ❌  | ❌  | ✅  |
+| Endpoint                             | Nessun token | CLIENT | MODERATOR  | ADMIN  |
+|--------------------------------------|:------------:|:------:|:---------: |:-----: |
+| GET prodotti / categorie             | ✅           | ✅     | ✅        | ✅    |
+| GET recensioni prodotto              | ✅           | ✅     | ✅        | ✅    |
+| POST register                        | ✅           | ✅     | ✅        | ✅    |
+| POST token                           | ✅           | ✅     | ✅        | ✅    |
+| GET /me                              | ❌           | ✅     | ✅        | ✅    |
+| GET /mine                            | ❌           | ✅     | ❌        | ❌    |
+| POST add review                      | ❌           | ✅     | ❌        | ❌    |
+| POST report (segnala)                | ❌           | ✅     | ❌        | ❌    |
+| POST compare (confronto AI)          | ❌           | ✅     | ✅        | ✅    |
+| PATCH update / DELETE review         | ❌           | ✅ (A) | ❌        | ✅    |
+| approve / hide review                | ❌           | ❌     | ✅        | ✅    |
+| GET reports (segnalazioni)           | ❌           | ❌     | ✅        | ✅    |
+| CRUD prodotti / categorie            | ❌           | ❌     | ❌        | ✅    |
+| top-rated / worst-rated              | ❌           | ❌     | ❌        | ✅    |
+| dashboard-stats                      | ❌           | ❌     | ❌        | ✅    |
+| /api/users/admin/                    | ❌           | ❌     | ❌        | ✅    |
+
+*(A) = Solo proprie recensioni*
