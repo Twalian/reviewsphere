@@ -1,20 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { createProduct } from "../api/products";
+import { getCategories } from "../api/categories";
 
 function AdminAddProductPage() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("1");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [status, setStatus] = useState("available");
+  const [status, setStatus] = useState("AVAILABLE");
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const data = await getCategories();
+        setCategories(data || []);
+        if (data && data.length > 0) {
+          setCategory(String(data[0].id));
+        }
+      } catch (error) {
+        console.error("Errore caricamento categorie:", error);
+      }
+    }
+    fetchCategories();
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -53,6 +70,7 @@ function AdminAddProductPage() {
       setMessageType("error");
     }
   }
+
 
   function getMessageStyle() {
     if (messageType === "success") {
@@ -160,10 +178,11 @@ function AdminAddProductPage() {
               width: "220px",
             }}
           >
-            <option value="1">Smartphone</option>
-            <option value="2">Computer</option>
-            <option value="3">Tablet</option>
-            <option value="4">Accessori</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
           </select>
 
           <input
@@ -217,10 +236,11 @@ function AdminAddProductPage() {
               width: "220px",
             }}
           >
-            <option value="available">Available</option>
-            <option value="inactive">Inactive</option>
-            <option value="out_of_order">Out of Order</option>
+            <option value="AVAILABLE">Available</option>
+            <option value="OUT_OF_STOCK">Out of Stock</option>
+            <option value="DISCONTINUED">Discontinued</option>
           </select>
+
 
           <button
             type="submit"

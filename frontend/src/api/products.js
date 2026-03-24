@@ -1,10 +1,19 @@
 import { apiRequest } from "./client";
 
-export async function getProducts() {
-  return await apiRequest("/products/", {
+export async function getProducts(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.category) params.append("category", filters.category);
+  if (filters.brand) params.append("brand", filters.brand);
+  if (filters.status) params.append("status", filters.status);
+
+  const queryString = params.toString();
+  const url = queryString ? `/products/?${queryString}` : "/products/";
+
+  return await apiRequest(url, {
     skipAuth: true,
   });
 }
+
 
 export async function createProduct(productData) {
   return await apiRequest("/products/", {
