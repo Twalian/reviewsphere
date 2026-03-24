@@ -48,11 +48,12 @@ function AdminDashboardPage() {
             style={{
               marginBottom: "20px",
               padding: "12px 16px",
-              borderRadius: "10px",
+              borderRadius: "12px",
               backgroundColor: "#fee2e2",
               color: "#991b1b",
               fontWeight: "bold",
               maxWidth: "1000px",
+              border: "1px solid #fecaca"
             }}
           >
             {message}

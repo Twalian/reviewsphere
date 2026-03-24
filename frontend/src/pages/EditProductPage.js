@@ -110,7 +110,7 @@ function EditProductPage() {
               color: "#991b1b",
               border: "1px solid #fca5a5",
               padding: "12px 16px",
-              borderRadius: "10px",
+              borderRadius: "12px",
               marginBottom: "20px",
               fontWeight: "bold",
               maxWidth: "700px",
