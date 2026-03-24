@@ -34,3 +34,10 @@ export async function updateProduct(id, data) {
     body: JSON.stringify(data),
   });
 }
+
+export async function compareProducts(productIds) {
+  return await apiRequest("/products/compare/", {
+    method: "POST",
+    body: JSON.stringify({ product_ids: productIds }),
+  });
+}
