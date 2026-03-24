@@ -59,7 +59,8 @@ OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct
 
 ### 2. Funzionalità AI Implementate
 - **Sentiment Analysis**: Analisi automatica del tono della recensione (italiano/inglese).
-- **Synthesis Reviews**: Riepilogo intelligente di decine di recensioni in un paragrafo conciso (in italiano).
+- **Synthesis Reviews**: Riepilogo intelligente di decine di recensioni in un paragrafo conciso (in italiano). **Attivato su richiesta** tramite il pulsante "Genera riepilogo" nella pagina prodotto — non viene eseguito automaticamente all'apertura per preservare i crediti API.
+
 - **Product Comparison**: Confronto diretto tra prodotti selezionati con raccomandazione finale (in italiano).
 
 ---

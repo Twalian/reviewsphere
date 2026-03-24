@@ -328,6 +328,7 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
  **URL**: `/api/reviews/<product_id>/ai-summary/`
 - **Method**: `GET`
 - **Authentication**: Required (JWT)
+- **Frontend behavior**: Questo endpoint **non viene chiamato automaticamente** all'apertura della pagina prodotto. L'utente deve cliccare esplicitamente il pulsante "Genera riepilogo" per attivare la chiamata e consumare un credito AI.
 **Response (200 OK)**
 ```json
 {
@@ -339,3 +340,4 @@ Questo documento definisce i contratti per gli endpoint API. Verrà esteso e det
 - **Errors**:
   - `404` → " Nessuna recensione approvata per questo prodotto"
   - `503` → "Servizio non disponibile"
+

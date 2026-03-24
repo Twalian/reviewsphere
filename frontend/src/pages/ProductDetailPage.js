@@ -18,6 +18,8 @@ function ProductDetailPage() {
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [aiSummary, setAiSummary] = useState(null);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [aiSummaryRequested, setAiSummaryRequested] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // "success" or "error"
   const [sort, setSort] = useState("newest");
@@ -50,14 +52,8 @@ function ProductDetailPage() {
       const reviewsData = await getReviewsByProduct(id, sort);
       setReviews(reviewsData || []);
 
+      // AI summary è ora on-demand: non viene caricata automaticamente
 
-      try {
-        const summaryData = await getAiSummaryByProduct(id);
-        setAiSummary(summaryData);
-      } catch (error) {
-        console.error("Errore AI summary:", error);
-        setAiSummary(null);
-      }
     } catch (error) {
       console.error("Errore caricamento prodotto:", error);
       setMessage("Errore durante il caricamento del prodotto.");
@@ -148,6 +144,21 @@ function ProductDetailPage() {
       console.error("Errore segnalazione recensione:", error);
       setMessage(error.message || "Errore durante la segnalazione.");
       setMessageType("error");
+    }
+  }
+
+
+  async function handleLoadAiSummary() {
+    setAiSummaryLoading(true);
+    setAiSummaryRequested(true);
+    try {
+      const summaryData = await getAiSummaryByProduct(id);
+      setAiSummary(summaryData);
+    } catch (error) {
+      console.error("Errore AI summary:", error);
+      setAiSummary(null);
+    } finally {
+      setAiSummaryLoading(false);
     }
   }
 
@@ -320,40 +331,71 @@ function ProductDetailPage() {
             maxWidth: "900px",
           }}
         >
-          <h2 style={{ marginTop: 0 }}>🤖 AI Summary recensioni</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: aiSummaryRequested ? "16px" : 0 }}>
+            <h2 style={{ margin: 0 }}>🤖 AI Summary recensioni</h2>
+            {!aiSummaryRequested && (
+              <button
+                onClick={handleLoadAiSummary}
+                style={{
+                  padding: "8px 18px",
+                  backgroundColor: "#1d4ed8",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                }}
+              >
+                Genera riepilogo
+              </button>
+            )}
+          </div>
 
-          {aiSummary ? (
-            <>
-              {aiSummary.summary && (
-                <p style={{ marginBottom: "12px" }}>{aiSummary.summary}</p>
-              )}
-
-              {aiSummary.pros && aiSummary.pros.length > 0 && (
-                <div style={{ marginBottom: "10px" }}>
-                  <strong>Pro:</strong>
-                  <ul>
-                    {aiSummary.pros.map((pro, index) => (
-                      <li key={index}>{pro}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {aiSummary.cons && aiSummary.cons.length > 0 && (
-                <div>
-                  <strong>Contro:</strong>
-                  <ul>
-                    {aiSummary.cons.map((con, index) => (
-                      <li key={index}>{con}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
-          ) : (
-            <p style={{ color: "#6b7280", marginBottom: 0 }}>
-              Al momento il riepilogo AI non è disponibile per questo prodotto.
+          {!aiSummaryRequested && (
+            <p style={{ color: "#6b7280", marginBottom: 0, marginTop: "12px" }}>
+              Clicca su "Genera riepilogo" per ottenere una sintesi AI delle recensioni.
             </p>
+          )}
+
+          {aiSummaryLoading && (
+            <p style={{ color: "#3b82f6", fontStyle: "italic" }}>⏳ Generazione riepilogo in corso...</p>
+          )}
+
+          {aiSummaryRequested && !aiSummaryLoading && (
+            aiSummary ? (
+              <>
+                {aiSummary.summary && (
+                  <p style={{ marginBottom: "12px" }}>{aiSummary.summary}</p>
+                )}
+
+                {aiSummary.pros && aiSummary.pros.length > 0 && (
+                  <div style={{ marginBottom: "10px" }}>
+                    <strong>Pro:</strong>
+                    <ul>
+                      {aiSummary.pros.map((pro, index) => (
+                        <li key={index}>{pro}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {aiSummary.cons && aiSummary.cons.length > 0 && (
+                  <div>
+                    <strong>Contro:</strong>
+                    <ul>
+                      {aiSummary.cons.map((con, index) => (
+                        <li key={index}>{con}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p style={{ color: "#6b7280", marginBottom: 0 }}>
+                Riepilogo AI non disponibile per questo prodotto.
+              </p>
+            )
           )}
         </div>
 
