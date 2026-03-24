@@ -14,6 +14,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from reviews.ai_providers import get_ai_provider, AIProviderError
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -163,6 +166,7 @@ class DashboardStatsView(APIView):
             'summary': {
                 'total_reviews': Review.objects.filter(status=Review.ReviewStatus.APPROVED).count(),
                 'total_products': Product.objects.count(),
+                'total_users': User.objects.count(),
                 'categories': Category.objects.count()
             }
         })
