@@ -96,18 +96,31 @@ def delete_reviews(request, review_id):
 def get_reviews_by_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
+    sort = request.query_params.get('sort', 'newest')
+
     if request.user.is_authenticated and request.user.role in ['ADMIN', 'MODERATOR']:
         reviews = (
             Review.objects
             .filter(product=product)
-            .select_related("user", "product")
         )
     else:
         reviews = (
             Review.objects
             .filter(product=product, status=Review.ReviewStatus.APPROVED)
-            .select_related("user", "product")
         )
+
+    # Sorting logic
+    if sort == 'newest':
+        reviews = reviews.order_by('-date')
+    elif sort == 'oldest':
+        reviews = reviews.order_by('date')
+    elif sort == 'highest':
+        reviews = reviews.order_by('-vote', '-date')
+    elif sort == 'lowest':
+        reviews = reviews.order_by('vote', '-date')
+
+    reviews = reviews.select_related("user", "product")
+
 
 
 

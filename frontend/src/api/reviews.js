@@ -7,11 +7,11 @@ export async function addReview(reviewData) {
   });
 }
 
-export async function getReviewsByProduct(productId) {
-  return apiRequest(`/reviews/product/${productId}/`, {
-    skipAuth: true,
-  });
+export async function getReviewsByProduct(productId, sort) {
+  const url = sort ? `/reviews/product/${productId}/?sort=${sort}` : `/reviews/product/${productId}/`;
+  return apiRequest(url);
 }
+
 
 export async function getAiSummaryByProduct(productId) {
   return apiRequest(`/reviews/${productId}/ai-summary/`);

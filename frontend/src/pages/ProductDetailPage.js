@@ -19,6 +19,8 @@ function ProductDetailPage() {
   const [reviews, setReviews] = useState([]);
   const [aiSummary, setAiSummary] = useState(null);
   const [message, setMessage] = useState("");
+  const [sort, setSort] = useState("newest");
+
 
   const [title, setTitle] = useState("");
   const [vote, setVote] = useState(5);
@@ -26,7 +28,8 @@ function ProductDetailPage() {
 
   useEffect(() => {
     loadData();
-  }, [id]);
+  }, [id, sort]);
+
 
   async function loadData() {
     try {
@@ -41,9 +44,10 @@ function ProductDetailPage() {
       }
 
       setProduct(foundProduct);
-
-      const reviewsData = await getReviewsByProduct(id);
+ 
+      const reviewsData = await getReviewsByProduct(id, sort);
       setReviews(reviewsData || []);
+
 
       try {
         const summaryData = await getAiSummaryByProduct(id);
@@ -337,7 +341,32 @@ function ProductDetailPage() {
           )}
         </div>
 
-        <h2>Recensioni</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", maxWidth: "900px" }}>
+          <h2 style={{ margin: 0 }}>Recensioni</h2>
+          
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <label htmlFor="sort" style={{ fontWeight: "bold", fontSize: "14px", color: "#4b5563" }}>Ordina per:</label>
+            <select
+              id="sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontSize: "14px"
+              }}
+            >
+              <option value="newest">Più recenti</option>
+              <option value="oldest">Meno recenti</option>
+              <option value="highest">Voto più alto</option>
+              <option value="lowest">Voto più basso</option>
+            </select>
+          </div>
+        </div>
+
 
         {reviews.length === 0 ? (
           <p>Non ci sono ancora recensioni per questo prodotto.</p>
