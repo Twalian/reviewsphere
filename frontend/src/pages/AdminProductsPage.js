@@ -51,6 +51,15 @@ function AdminProductsPage() {
             <h3>{p.name}</h3>
             <p>{p.brand}</p>
             <p>{p.price} €</p>
+            <p style={{ fontSize: "14px" }}>
+              <strong>Stato:</strong>{" "}
+              <span style={{ 
+                color: p.status === "AVAILABLE" ? "#166534" : "#991b1b",
+                fontWeight: "bold"
+              }}>
+                {p.status}
+              </span>
+            </p>
 
             <button
               onClick={() => navigate(`/admin/products/${p.id}/edit`)}

@@ -48,11 +48,12 @@ function AdminDashboardPage() {
             style={{
               marginBottom: "20px",
               padding: "12px 16px",
-              borderRadius: "10px",
+              borderRadius: "12px",
               backgroundColor: "#fee2e2",
               color: "#991b1b",
               fontWeight: "bold",
               maxWidth: "1000px",
+              border: "1px solid #fecaca"
             }}
           >
             {message}
@@ -124,7 +125,9 @@ function AdminDashboardPage() {
                           }} 
                         />
                         <span style={{ fontSize: "12px", color: "#6b7280", transform: "rotate(-45deg)", whiteSpace: "nowrap", marginTop: "10px" }}>
-                          {item.month || item.label}
+                          {item.month 
+                            ? new Date(item.month).toLocaleString("it-IT", { month: "short", year: "numeric" }) 
+                            : item.label}
                         </span>
                       </div>
                     ))}

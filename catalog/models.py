@@ -18,9 +18,9 @@ class Category(models.Model):
 class Product(models.Model):
 
     STATUS_CHOICES = [
-        ('available', 'Available'),
-        ('inactive', 'Inactive'), # un prodotto significa che è stato creato ma non è ancora visibile al pubblico
-        ('out_of_order', 'Out of Order'),
+        ('AVAILABLE', 'Available'),
+        ('OUT_OF_STOCK', 'Out of Stock'),
+        ('DISCONTINUED', 'Discontinued'),
     ]
 
     name = models.CharField(max_length=200)

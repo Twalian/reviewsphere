@@ -8,13 +8,16 @@ Può:
 - creare una recensione
 - visualizzare le proprie recensioni
 - visualizzare le recensioni approvate dei prodotti
+- confrontare prodotti usando l'AI
+- segnalare recensioni
 
 Non può:
 - creare, modificare o eliminare prodotti
 - visualizzare tutte le recensioni
 - approvare o nascondere recensioni
 - gestire utenti
-- accedere alle analisi AI admin
+- accedere alle analisi statistiche admin
+- visualizzare la dashboard di sistema
 
 ## MODERATOR
 Può:

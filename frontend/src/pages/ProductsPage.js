@@ -338,6 +338,30 @@ function ProductsPage() {
                   <strong>Categoria:</strong> {getCategoryName(product.category)}
                 </p>
 
+                <div style={{ margin: "10px 0" }}>
+                  <span
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                      backgroundColor: 
+                        product.status === "AVAILABLE" ? "#dcfce7" :
+                        product.status === "OUT_OF_STOCK" ? "#fef9c3" : 
+                        "#f3f4f6",
+                      color:
+                        product.status === "AVAILABLE" ? "#166534" :
+                        product.status === "OUT_OF_STOCK" ? "#854d0e" : 
+                        "#4b5563",
+                    }}
+                  >
+                    {product.status === "OUT_OF_STOCK" ? "Non disponibile" :
+                     product.status === "DISCONTINUED" ? "Fuori produzione" :
+                     "Disponibile"}
+                  </span>
+                </div>
+
                 <p style={{ margin: "6px 0 20px 0", color: "#111827", fontSize: "1.1rem" }}>
                   <strong>Prezzo:</strong> {product.price} €
                 </p>

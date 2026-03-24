@@ -19,8 +19,8 @@ function ProductDetailPage() {
   const [reviews, setReviews] = useState([]);
   const [aiSummary, setAiSummary] = useState(null);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // "success" or "error"
   const [sort, setSort] = useState("newest");
-
 
   const [title, setTitle] = useState("");
   const [vote, setVote] = useState(5);
@@ -30,16 +30,18 @@ function ProductDetailPage() {
     loadData();
   }, [id, sort]);
 
-
   async function loadData() {
     try {
+      // Clear messages on load
       setMessage("");
+      setMessageType("");
 
       const products = await getProducts();
       const foundProduct = products.find((p) => String(p.id) === String(id));
 
       if (!foundProduct) {
         setMessage("Prodotto non trovato.");
+        setMessageType("error");
         return;
       }
 
@@ -59,11 +61,14 @@ function ProductDetailPage() {
     } catch (error) {
       console.error("Errore caricamento prodotto:", error);
       setMessage("Errore durante il caricamento del prodotto.");
+      setMessageType("error");
     }
   }
 
   async function handleSubmitReview(e) {
     e.preventDefault();
+    setMessage("");
+    setMessageType("");
 
     try {
       const payload = {
@@ -75,7 +80,8 @@ function ProductDetailPage() {
 
       await addReview(payload);
 
-      setMessage("Recensione inviata con successo.");
+      setMessage("Recensione inviata con successo! Sarà visibile una volta approvata.");
+      setMessageType("success");
       setTitle("");
       setVote(5);
       setDescription("");
@@ -83,7 +89,13 @@ function ProductDetailPage() {
       loadData();
     } catch (error) {
       console.error("Errore invio recensione:", error);
-      setMessage(error.message || "Errore durante l'invio della recensione.");
+      
+      if (error.status === 409 || error.message?.includes("409")) {
+        setMessage("Hai già inviato una recensione per questo prodotto.");
+      } else {
+        setMessage(error.message || "Errore durante l'invio della recensione.");
+      }
+      setMessageType("error");
     }
   }
 
@@ -131,9 +143,11 @@ function ProductDetailPage() {
     try {
       await reportReview(reviewId, reason.trim());
       setMessage("Segnalazione inviata con successo.");
+      setMessageType("success");
     } catch (error) {
       console.error("Errore segnalazione recensione:", error);
       setMessage(error.message || "Errore durante la segnalazione.");
+      setMessageType("error");
     }
   }
 
@@ -152,15 +166,17 @@ function ProductDetailPage() {
               marginBottom: "20px",
               padding: "12px 16px",
               borderRadius: "10px",
-              backgroundColor: "#fee2e2",
-              color: "#991b1b",
+              backgroundColor: messageType === "success" ? "#dcfce7" : "#fee2e2",
+              color: messageType === "success" ? "#166534" : "#991b1b",
               fontWeight: "bold",
               maxWidth: "900px",
+              border: `1px solid ${messageType === "success" ? "#bbf7d0" : "#fecaca"}`
             }}
           >
             {message}
           </div>
         )}
+
 
         {product && (
           <div

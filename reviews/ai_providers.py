@@ -128,7 +128,8 @@ class GeminiProvider(AIProvider):
             f"Return a JSON object with the following structure:\n"
             f'{{"sentiment": "positive"|"negative"|"neutral", '
             f'"confidence": float (0-1), '
-            f'"emotions": ["emotion1", "emotion2"]}}\n\n'
+            f'"emotions": ["emozione1", "emozione2"]}}\n'
+            f"IMPORTANT: Provide the list of emotions in ITALIAN.\n\n"
             f"Review Text: {text}"
         )
 
@@ -162,14 +163,15 @@ class GeminiProvider(AIProvider):
         ])
 
         prompt = (
-            f"Synthesize the following product reviews into a coherent summary. "
+            f"Synthesize the following product reviews into a coherent summary in ITALIAN. "
             f"Highlight key themes, pros, and cons mentioned by customers. "
             f"Return a JSON object with the following structure:\n"
-            f'{{"summary": "A concise paragraph summary", '
-            f'"key_themes": ["theme1", "theme2"], '
+            f'{{"summary": "Un paragrafo conciso di riassunto", '
+            f'"key_themes": ["tema1", "tema2"], '
             f'"pros": ["pro1", "pro2"], '
-            f'"cons": ["con1", "con2"], '
-            f'"overall_sentiment": "positive"|"negative"|"neutral"}}\n\n'
+            f'"cons": ["contro1", "contro2"], '
+            f'"overall_sentiment": "positive"|"negative"|"neutral"}}\n'
+            f"IMPORTANT: All user-facing text (summary, themes, pros, cons) MUST BE IN ITALIAN.\n\n"
             f"Reviews:\n{reviews_text}"
         )
 
@@ -206,10 +208,11 @@ class GeminiProvider(AIProvider):
                 comparison_context += "---\n"
 
             prompt = (
-                f"Compare the following products based on their aggregated review summaries and ratings.\n"
+                f"Compare the following products based on their aggregated review summaries and ratings in ITALIAN.\n"
                 f"Identify key differences, which one is better for which use case, and give a final recommendation.\n"
                 f"Return ONLY a JSON object with this structure:\n"
-                f'{{"comparison": "Detailed comparison text...", "winner_recommendation": "Product Name - reason"}}\n\n'
+                f'{{"comparison": "Testo dettagliato del confronto...", "winner_recommendation": "Nome Prodotto - motivo"}}\n'
+                f"IMPORTANT: All text (comparison and winner_recommendation) MUST BE IN ITALIAN.\n\n"
                 f"{comparison_context}"
             )
 
@@ -293,10 +296,11 @@ class OpenRouterProvider(AIProvider):
             comparison_context += "---\n"
 
         prompt = (
-            f"Compare the following products based on their aggregated review summaries and ratings.\n"
+            f"Compare the following products based on their aggregated review summaries and ratings in ITALIAN.\n"
             f"Identify key differences, which one is better for which use case, and give a final recommendation.\n"
             f"Return ONLY a JSON object with this structure:\n"
-            f'{{"comparison": "Detailed comparison text...", "winner_recommendation": "Product Name - reason"}}\n\n'
+            f'{{"comparison": "Testo dettagliato del confronto...", "winner_recommendation": "Nome Prodotto - motivo"}}\n'
+            f"IMPORTANT: All text (comparison and winner_recommendation) MUST BE IN ITALIAN.\n\n"
             f"{comparison_context}"
         )
 
@@ -318,7 +322,8 @@ class OpenRouterProvider(AIProvider):
             f"Return ONLY a JSON object with this structure:\n"
             f'{{"sentiment": "positive"|"negative"|"neutral", '
             f'"confidence": float (0-1), '
-            f'"emotions": ["emotion1", "emotion2"]}}\n\n'
+            f'"emotions": ["emozione1", "emozione2"]}}\n'
+            f"IMPORTANT: Provide the list of emotions in ITALIAN.\n\n"
             f"Review Text: {text}"
         )
 
@@ -342,11 +347,12 @@ class OpenRouterProvider(AIProvider):
         ])
 
         prompt = (
-            f"Synthesize these product reviews into a summary. "
+            f"Synthesize these product reviews into a summary in ITALIAN. "
             f"Include themes, pros, and cons. "
             f"Return ONLY a JSON object with this structure:\n"
-            f'{{"summary": "string", "key_themes": ["str"], '
-            f'"pros": ["str"], "cons": ["str"], "overall_sentiment": "str"}}\n\n'
+            f'{{"summary": "riassunto", "key_themes": ["tema"], '
+            f'"pros": ["pro"], "cons": ["contro"], "overall_sentiment": "positive"}}\n'
+            f"IMPORTANT: All user-facing text (summary, themes, pros, cons) MUST BE IN ITALIAN.\n\n"
             f"Reviews:\n{reviews_text}"
         )
 

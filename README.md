@@ -1,15 +1,42 @@
-# ReviewSphere
+# ReviewSphere - Community-Driven Product Reviews
 
-## Setup
-1. Clone the repository
-2. Create virtual environment: `python3 -m venv venv`
-3. Activate environment: `source venv/bin/activate` 
-   - Windows: `venv\Scripts\activate`
-4. Install dependencies: `pip install -r requirements.txt`
-5. Copy `.env.example` to `.env`
-6. Run migrations: `python manage.py migrate`
-7. Create superuser: `python manage.py createsuperuser`
-8. Run server: `python manage.py runserver`
+ReviewSphere is a platform for community-driven product reviews with AI-powered sentiment analysis, synthesis, and comparison features.
+
+## 🚀 Avvio Rapido
+
+### 1. Backend (Django REST Framework)
+Il backend gestisce l'API, l'autenticazione JWT e l'integrazione AI.
+
+1. **Requisiti**: Assicurati di avere Python 3.10+ installato.
+2. **Ambiente Virtuale**: 
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # (Windows: venv\Scripts\activate)
+   ```
+3. **Dipendenze**: `pip install -r requirements.txt`
+4. **Configurazione**: Copia `.env.example` in `.env` e inserisci le tue chiavi API (vedi sezione AI sotto).
+5. **Database**: `python manage.py migrate`
+6. **Esecuzione**: `python manage.py runserver` (disponibile su http://localhost:8000)
+
+### 2. Frontend (React)
+Il frontend è una Single Page Application moderna e reattiva.
+
+1. **Requisiti**: Node.js v16+ e npm.
+2. **Installazione**:
+   ```bash
+   cd frontend
+   npm install
+   ```
+3. **Esecuzione**: `npm start` (disponibile su http://localhost:3000)
+
+---
+
+## 🔑 Credenziali di Accesso Admin
+Per testare le funzionalità di amministrazione e moderazione:
+- **Username**: `admin`
+- **Password**: `admin1234`
+
+---
 
 ## 🛠️ Configurazione AI
 
@@ -22,16 +49,23 @@ Assicurati di avere il file `.env` nella root del progetto con i seguenti valori
 # Provider Attivo (gemini | openrouter)
 AI_PROVIDER=gemini
 
-# Google Gemini
+# Google Gemini (Raccomandato)
 GEMINI_API_KEY=tua_chiave_google
 
-# OpenRouter (opzionale se usi Gemini)
+# OpenRouter (opzionale)
 OPENROUTER_API_KEY=tua_chiave_openrouter
-OPENROUTER_MODEL=arcee-ai/trinity-large-preview:free
+OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct
 ```
 
-### 2. Funzionamento
-- **Sentiment Analysis**: Viene eseguita automaticamente al salvataggio di una recensione.
-- **Synthesize Reviews**: Disponibile tramite l'endpoint `/api/reviews/product/{id}/ai-summary/`.
+### 2. Funzionalità AI Implementate
+- **Sentiment Analysis**: Analisi automatica del tono della recensione (italiano/inglese).
+- **Synthesis Reviews**: Riepilogo intelligente di decine di recensioni in un paragrafo conciso (in italiano).
+- **Product Comparison**: Confronto diretto tra prodotti selezionati con raccomandazione finale (in italiano).
 
-Puoi cambiare il provider in qualsiasi momento modificando `AI_PROVIDER` nel file `.env`.
+---
+
+## 📂 Struttura del Progetto
+- `/catalog`: Gestione prodotti, categorie e statistiche dashboard.
+- `/reviews`: Gestione recensioni, segnalazioni e provider AI.
+- `/users`: Gestione utenti, profili e permessi RBAC.
+- `/frontend`: Applicazione React con sistema di design premium.
