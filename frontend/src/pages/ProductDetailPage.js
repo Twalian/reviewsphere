@@ -290,46 +290,52 @@ function ProductDetailPage() {
           </div>
         )}
 
-        {aiSummary && (
-          <div
-            style={{
-              border: "1px solid #dbeafe",
-              backgroundColor: "#eff6ff",
-              borderRadius: "12px",
-              padding: "18px",
-              marginBottom: "30px",
-              maxWidth: "900px",
-            }}
-          >
-            <h2 style={{ marginTop: 0 }}>AI Summary recensioni</h2>
+        <div
+          style={{
+            border: "1px solid #dbeafe",
+            backgroundColor: "#eff6ff",
+            borderRadius: "12px",
+            padding: "18px",
+            marginBottom: "30px",
+            maxWidth: "900px",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>🤖 AI Summary recensioni</h2>
 
-            {aiSummary.summary && (
-              <p style={{ marginBottom: "12px" }}>{aiSummary.summary}</p>
-            )}
+          {aiSummary ? (
+            <>
+              {aiSummary.summary && (
+                <p style={{ marginBottom: "12px" }}>{aiSummary.summary}</p>
+              )}
 
-            {aiSummary.pros && aiSummary.pros.length > 0 && (
-              <div style={{ marginBottom: "10px" }}>
-                <strong>Pro:</strong>
-                <ul>
-                  {aiSummary.pros.map((pro, index) => (
-                    <li key={index}>{pro}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {aiSummary.pros && aiSummary.pros.length > 0 && (
+                <div style={{ marginBottom: "10px" }}>
+                  <strong>Pro:</strong>
+                  <ul>
+                    {aiSummary.pros.map((pro, index) => (
+                      <li key={index}>{pro}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {aiSummary.cons && aiSummary.cons.length > 0 && (
-              <div>
-                <strong>Contro:</strong>
-                <ul>
-                  {aiSummary.cons.map((con, index) => (
-                    <li key={index}>{con}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
+              {aiSummary.cons && aiSummary.cons.length > 0 && (
+                <div>
+                  <strong>Contro:</strong>
+                  <ul>
+                    {aiSummary.cons.map((con, index) => (
+                      <li key={index}>{con}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          ) : (
+            <p style={{ color: "#6b7280", marginBottom: 0 }}>
+              Al momento il riepilogo AI non è disponibile per questo prodotto.
+            </p>
+          )}
+        </div>
 
         <h2>Recensioni</h2>
 
@@ -354,7 +360,13 @@ function ProductDetailPage() {
                 <strong>Autore:</strong> {review.username}
               </p>
 
-              <p style={{ margin: "0 0 6px 0", color: "#f59e0b", fontSize: "18px" }}>
+              <p
+                style={{
+                  margin: "0 0 6px 0",
+                  color: "#f59e0b",
+                  fontSize: "18px",
+                }}
+              >
                 {renderStars(review.vote)} ({review.vote}/5)
               </p>
 
@@ -364,15 +376,29 @@ function ProductDetailPage() {
                 </p>
               )}
 
-              {review.sentiment && (
-                <p style={{ margin: "0 0 6px 0", color: "#4b5563" }}>
-                  <strong>Sentiment:</strong> {review.sentiment}
-                </p>
-              )}
-
               <p style={{ margin: "10px 0 12px 0", color: "#111827" }}>
                 {review.description}
               </p>
+
+              <div
+                style={{
+                  ...(review.sentiment
+                    ? review.sentiment === "positive"
+                      ? { backgroundColor: "#dcfce7", color: "#166534" }
+                      : review.sentiment === "negative"
+                      ? { backgroundColor: "#fee2e2", color: "#991b1b" }
+                      : { backgroundColor: "#fef9c3", color: "#854d0e" }
+                    : { backgroundColor: "#e5e7eb", color: "#374151" }),
+                  display: "inline-block",
+                  padding: "6px 10px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  marginBottom: "12px",
+                }}
+              >
+                Sentiment AI: {review.sentiment || "non disponibile"}
+              </div>
 
               <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
                 <button
