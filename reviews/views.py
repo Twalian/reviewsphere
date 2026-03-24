@@ -96,11 +96,20 @@ def delete_reviews(request, review_id):
 def get_reviews_by_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
-    reviews = (
-        Review.objects
-        .filter(product=product)
-        .select_related("user", "product")
-    )
+    if request.user.is_authenticated and request.user.role in ['ADMIN', 'MODERATOR']:
+        reviews = (
+            Review.objects
+            .filter(product=product)
+            .select_related("user", "product")
+        )
+    else:
+        reviews = (
+            Review.objects
+            .filter(product=product, status=Review.ReviewStatus.APPROVED)
+            .select_related("user", "product")
+        )
+
+
 
     serializer = ReviewListSerializer(reviews, many=True)
     return Response(serializer.data)

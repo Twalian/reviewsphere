@@ -66,9 +66,19 @@ class ReviewRBACTests(APITestCase):
         response = self.client.post(self.add_url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_public_can_get_product_reviews(self):
+    def test_public_can_get_product_reviews_only_approved(self):
+        # Case 1: Pending review should NOT be visible
         response = self.client.get(self.product_reviews_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+        # Case 2: Approved review SHOULD be visible
+        self.review.status = Review.ReviewStatus.APPROVED
+        self.review.save()
+        response = self.client.get(self.product_reviews_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
 
     def test_moderator_can_approve_review(self):
         self.client.force_authenticate(user=self.moderator_user)

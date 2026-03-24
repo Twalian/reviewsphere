@@ -352,6 +352,7 @@ function ProductDetailPage() {
                 marginBottom: "14px",
                 maxWidth: "900px",
                 backgroundColor: "white",
+                position: "relative",
               }}
             >
               <h3 style={{ margin: "0 0 8px 0" }}>{review.title}</h3>
@@ -370,10 +371,31 @@ function ProductDetailPage() {
                 {renderStars(review.vote)} ({review.vote}/5)
               </p>
 
-              {review.status && (
-                <p style={{ margin: "0 0 6px 0", color: "#4b5563" }}>
-                  <strong>Stato:</strong> {review.status}
-                </p>
+              {/* Status Badge only for Admin/Moderator */}
+              {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "16px",
+                    right: "16px",
+                    padding: "4px 12px",
+                    borderRadius: "999px",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                    backgroundColor: 
+                      review.status === "APPROVED" ? "#dcfce7" :
+                      review.status === "PENDING" ? "#fef9c3" : 
+                      "#fee2e2",
+                    color:
+                      review.status === "APPROVED" ? "#166534" :
+                      review.status === "PENDING" ? "#854d0e" : 
+                      "#991b1b",
+                    border: "1px solid currentColor"
+                  }}
+                >
+                  {review.status}
+                </div>
               )}
 
               <p style={{ margin: "10px 0 12px 0", color: "#111827" }}>
