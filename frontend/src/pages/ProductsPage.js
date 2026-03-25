@@ -81,7 +81,6 @@ function ProductsPage() {
     try {
       const result = await compareProducts(selectedForComparison);
       setComparisonResult(result);
-      // Scroll to result
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }, 100);
@@ -94,44 +93,53 @@ function ProductsPage() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", fontFamily: "'Inter', Arial, sans-serif" }}>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
-        <h1 style={{ marginBottom: "10px" }}>Lista Prodotti</h1>
-        <p style={{ color: "#555", marginBottom: "30px" }}>
-          Catalogo prodotti ReviewSphere
-        </p>
+      <div style={{ padding: "40px 5%", margin: "0 auto" }}>
+        <div style={{ marginBottom: "40px", textAlign: "center" }}>
+          <h1 style={{ margin: "0 0 10px 0", color: "#111827", fontSize: "32px", fontWeight: "800" }}>Esplora il Catalogo</h1>
+          <p style={{ color: "#6b7280", margin: 0, fontSize: "16px" }}>
+            Scopri i migliori prodotti, leggi le recensioni e confrontali con l'AI.
+          </p>
+        </div>
 
         {/* AI Comparison Results */}
         {comparisonResult && (
           <div
             style={{
               marginBottom: "40px",
-              padding: "25px",
-              backgroundColor: "#f0fdf4",
-              border: "2px solid #22c55e",
-              borderRadius: "16px",
+              padding: "30px",
+              backgroundColor: "white",
+              border: "2px solid #10b981",
+              borderRadius: "20px",
+              boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)",
               maxWidth: "1000px",
+              margin: "0 auto 40px auto"
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-              <h2 style={{ color: "#166534", margin: 0 }}>🤖 Risultato Confronto AI</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ color: "#065f46", margin: 0, display: "flex", alignItems: "center", gap: "10px", fontSize: "24px" }}>
+                <span>🤖</span> Risultato Confronto AI
+              </h2>
               <button 
                 onClick={() => setComparisonResult(null)}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "20px", color: "#166534" }}
+                style={{ background: "#f3f4f6", border: "none", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#4b5563", fontWeight: "bold" }}
               >
                 ✕
               </button>
             </div>
             
-            <div style={{ fontSize: "16px", lineHeight: "1.6", color: "#111827" }}>
-              <p style={{ whiteSpace: "pre-wrap" }}>{comparisonResult.comparison}</p>
+            <div style={{ fontSize: "16px", lineHeight: "1.7", color: "#374151" }}>
+              <p style={{ whiteSpace: "pre-wrap", margin: "0 0 20px 0" }}>{comparisonResult.comparison}</p>
               
               {comparisonResult.winner_recommendation && (
-                <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#fff", borderRadius: "10px", border: "1px solid #bbf7d0" }}>
-                  <strong style={{ color: "#15803d", display: "block", marginBottom: "5px" }}>🏆 Raccomandazione AI:</strong>
-                  {comparisonResult.winner_recommendation}
+                <div style={{ padding: "20px", backgroundColor: "#ecfdf5", borderRadius: "12px", border: "1px solid #a7f3d0", display: "flex", gap: "15px", alignItems: "flex-start" }}>
+                  <div style={{ fontSize: "28px", marginTop: "-4px" }}>🏆</div>
+                  <div>
+                    <strong style={{ color: "#047857", display: "block", marginBottom: "8px", fontSize: "18px" }}>Raccomandazione Definitiva:</strong>
+                    <span style={{ color: "#065f46", lineHeight: "1.5" }}>{comparisonResult.winner_recommendation}</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -144,21 +152,22 @@ function ProductsPage() {
             display: "flex",
             flexDirection: "column",
             gap: "20px",
-            marginBottom: "30px",
-            padding: "20px",
-            backgroundColor: "#f3f4f6",
-            borderRadius: "12px",
+            marginBottom: "40px",
+            padding: "24px",
+            backgroundColor: "white",
+            borderRadius: "16px",
+            boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
           }}
         >
-          <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "bold" }}>Categoria</label>
+          <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "flex-end" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: "1", minWidth: "150px" }}>
+              <label style={{ fontSize: "14px", fontWeight: "bold", color: "#374151" }}>Categoria</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }}
+                style={{ padding: "12px", borderRadius: "10px", border: "1px solid #d1d5db", backgroundColor: "#f9fafb", color: "#111827", outline: "none", cursor: "pointer" }}
               >
-                <option value="">Tutte le categorie</option>
+                <option value="">Tutte</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
@@ -167,14 +176,14 @@ function ProductsPage() {
               </select>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "bold" }}>Marca</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: "1", minWidth: "150px" }}>
+              <label style={{ fontSize: "14px", fontWeight: "bold", color: "#374151" }}>Marca</label>
               <select
                 value={selectedBrand}
                 onChange={(e) => setSelectedBrand(e.target.value)}
-                style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }}
+                style={{ padding: "12px", borderRadius: "10px", border: "1px solid #d1d5db", backgroundColor: "#f9fafb", color: "#111827", outline: "none", cursor: "pointer" }}
               >
-                <option value="">Tutte le marche</option>
+                <option value="">Tutte</option>
                 <option value="Apple">Apple</option>
                 <option value="Samsung">Samsung</option>
                 <option value="Sony">Sony</option>
@@ -183,14 +192,14 @@ function ProductsPage() {
               </select>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label style={{ fontSize: "14px", fontWeight: "bold" }}>Stato</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: "1", minWidth: "150px" }}>
+              <label style={{ fontSize: "14px", fontWeight: "bold", color: "#374151" }}>Stato</label>
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }}
+                style={{ padding: "12px", borderRadius: "10px", border: "1px solid #d1d5db", backgroundColor: "#f9fafb", color: "#111827", outline: "none", cursor: "pointer" }}
               >
-                <option value="">Tutti gli stati</option>
+                <option value="">Tutti</option>
                 <option value="AVAILABLE">Disponibile</option>
                 <option value="OUT_OF_STOCK">Non disponibile</option>
                 <option value="DISCONTINUED">Fuori produzione</option>
@@ -204,186 +213,224 @@ function ProductsPage() {
                 setSelectedStatus("");
               }}
               style={{
-                marginTop: "20px",
-                padding: "10px 15px",
-                backgroundColor: "#e5e7eb",
+                padding: "12px 20px",
+                backgroundColor: "#f3f4f6",
+                color: "#4b5563",
                 border: "none",
-                borderRadius: "8px",
+                borderRadius: "10px",
                 cursor: "pointer",
                 fontWeight: "bold",
+                height: "45px"
               }}
             >
               Reset Filtri
             </button>
           </div>
 
-          {user && (
-            <div style={{ display: "flex", alignItems: "center", gap: "15px", borderTop: "1px solid #ddd", paddingTop: "15px" }}>
-              <span style={{ fontWeight: "bold", fontSize: "15px" }}>
-                🎯 Selezionati per confronto: {selectedForComparison.length}
-              </span>
-              <button
-                onClick={handleCompare}
-                disabled={selectedForComparison.length < 2 || comparing}
-                style={{
-                  padding: "12px 20px",
-                  backgroundColor: comparing ? "#9ca3af" : "#059669",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "10px",
-                  cursor: selectedForComparison.length < 2 || comparing ? "not-allowed" : "pointer",
-                  fontWeight: "bold",
-                }}
-              >
-                {comparing ? "Confronto in corso..." : "🚀 Confronta Prodotti (AI)"}
-              </button>
-              {selectedForComparison.length > 0 && (
-                <button 
-                  onClick={() => setSelectedForComparison([])}
-                  style={{ background: "none", border: "none", color: "#4b5563", cursor: "pointer", textDecoration: "underline" }}
-                >
-                  Svuota selezione
-                </button>
+          {(user || selectedForComparison.length > 0) && (
+            <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: "20px", marginTop: "4px" }}>
+              {user ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", backgroundColor: "#eff6ff", padding: "10px 16px", borderRadius: "10px", color: "#1e3a8a", fontWeight: "bold" }}>
+                    <span>🎯</span> Prodotti selezionati: {selectedForComparison.length}
+                  </div>
+                  
+                  <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                    {selectedForComparison.length > 0 && (
+                      <button 
+                        onClick={() => setSelectedForComparison([])}
+                        style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", fontWeight: "bold" }}
+                      >
+                        Svuota selezione
+                      </button>
+                    )}
+                    
+                    <button
+                      onClick={handleCompare}
+                      disabled={selectedForComparison.length < 2 || comparing}
+                      style={{
+                        padding: "12px 24px",
+                        backgroundColor: (selectedForComparison.length < 2 || comparing) ? "#9ca3af" : "#10b981",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "10px",
+                        cursor: (selectedForComparison.length < 2 || comparing) ? "not-allowed" : "pointer",
+                        fontWeight: "bold",
+                        fontSize: "15px",
+                        boxShadow: selectedForComparison.length >= 2 && !comparing ? "0 4px 6px -1px rgba(16, 185, 129, 0.3)" : "none",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      {comparing ? "Analisi in corso..." : "✨ Confronta con AI"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#d97706", fontWeight: "bold", padding: "12px", backgroundColor: "#fffbeb", borderRadius: "10px" }}>
+                  <span style={{ fontSize: "18px" }}>⚠️</span> Effettua il login per utilizzare il confronto AI e scoprire qual è il prodotto migliore per te.
+                </div>
               )}
             </div>
           )}
-          {!user && selectedForComparison.length > 0 && (
-              <p style={{ color: "#d97706", margin: 0, fontWeight: "bold" }}>
-                ⚠️ Effettua il login per utilizzare il confronto AI.
-              </p>
-          )}
         </div>
 
-        {loading && <p>Caricamento prodotti...</p>}
+        {loading && (
+          <div style={{ textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "18px", fontWeight: "bold" }}>
+            Caricamento prodotti...
+          </div>
+        )}
 
         {!loading && error && (
-          <p style={{ color: "red", marginBottom: "20px" }}>{error}</p>
+          <div style={{ padding: "16px", backgroundColor: "#fee2e2", color: "#991b1b", borderRadius: "10px", textAlign: "center", fontWeight: "bold" }}>
+            {error}
+          </div>
         )}
 
         {!loading && !error && products.length === 0 && (
-          <p>Nessun prodotto disponibile con questi filtri.</p>
+          <div style={{ textAlign: "center", padding: "60px 0", color: "#6b7280", backgroundColor: "white", borderRadius: "16px", fontSize: "18px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
+            Nessun prodotto disponibile con questi filtri.
+          </div>
         )}
 
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "25px",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "30px",
           }}
         >
           {!loading &&
             !error &&
-            products.map((product) => (
-              <div
-                key={product.id}
-                style={{
-                  border: selectedForComparison.includes(product.id) ? "2px solid #059669" : "1px solid #ddd",
-                  borderRadius: "20px",
-                  padding: "24px",
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.05)",
-                  backgroundColor: "#fff",
-                  transition: "all 0.2s ease",
-                  position: "relative",
-                  transform: selectedForComparison.includes(product.id) ? "scale(1.02)" : "scale(1)",
-                }}
-              >
-                {/* Comparison Checkbox */}
-                <div style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedForComparison.includes(product.id)}
-                    onChange={() => handleSelectForComparison(product.id)}
-                    style={{ width: "20px", height: "20px", cursor: "pointer" }}
-                    title="Seleziona per il confronto"
-                  />
-                </div>
-
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    style={{
-                      width: "100%",
-                      height: "180px",
-                      objectFit: "cover",
-                      borderRadius: "16px",
-                      marginBottom: "16px",
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      height: "180px",
-                      backgroundColor: "#f3f4f6",
-                      borderRadius: "16px",
-                      marginBottom: "16px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#9ca3af",
-                      fontSize: "14px",
-                    }}
-                  >
-                    Immagine non disponibile
-                  </div>
-                )}
-
-                <h3 style={{ margin: "0 0 12px 0", fontSize: "1.25rem" }}>{product.name}</h3>
-
-                <p style={{ margin: "6px 0", color: "#4b5563" }}>
-                  <strong>Marca:</strong> {product.brand}
-                </p>
-
-                <p style={{ margin: "6px 0", color: "#4b5563" }}>
-                  <strong>Categoria:</strong> {getCategoryName(product.category)}
-                </p>
-
-                <div style={{ margin: "10px 0" }}>
-                  <span
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: "999px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      textTransform: "uppercase",
-                      backgroundColor: 
-                        product.status === "AVAILABLE" ? "#dcfce7" :
-                        product.status === "OUT_OF_STOCK" ? "#fef9c3" : 
-                        "#f3f4f6",
-                      color:
-                        product.status === "AVAILABLE" ? "#166534" :
-                        product.status === "OUT_OF_STOCK" ? "#854d0e" : 
-                        "#4b5563",
-                    }}
-                  >
-                    {product.status === "OUT_OF_STOCK" ? "Non disponibile" :
-                     product.status === "DISCONTINUED" ? "Fuori produzione" :
-                     "Disponibile"}
-                  </span>
-                </div>
-
-                <p style={{ margin: "6px 0 20px 0", color: "#111827", fontSize: "1.1rem" }}>
-                  <strong>Prezzo:</strong> {product.price} €
-                </p>
-
-                <button
-                  onClick={() => navigate(`/products/${product.id}`)}
+            products.map((product) => {
+              const isSelected = selectedForComparison.includes(product.id);
+              
+              return (
+                <div
+                  key={product.id}
                   style={{
-                    width: "100%",
-                    padding: "14px",
-                    backgroundColor: "#1e3a8a",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "12px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    fontSize: "1rem",
+                    borderRadius: "20px",
+                    padding: "20px",
+                    backgroundColor: "white",
+                    boxShadow: isSelected ? "0 0 0 3px #10b981, 0 10px 25px -5px rgba(16, 185, 129, 0.2)" : "0 4px 6px -1px rgba(0,0,0,0.05)",
+                    transition: "all 0.2s ease",
+                    position: "relative",
+                    transform: isSelected ? "translateY(-4px)" : "none",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  Vedi dettagli
-                </button>
-              </div>
-            ))}
+                  <div style={{ position: "absolute", top: "16px", right: "16px", zIndex: 10 }}>
+                    <div 
+                      onClick={() => handleSelectForComparison(product.id)}
+                      style={{ 
+                        width: "32px", 
+                        height: "32px", 
+                        borderRadius: "8px", 
+                        backgroundColor: isSelected ? "#10b981" : "white",
+                        border: isSelected ? "none" : "2px solid #d1d5db",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                        transition: "all 0.2s"
+                      }}
+                      title="Seleziona per il confronto"
+                    >
+                      {isSelected && <span style={{ color: "white", fontWeight: "bold", fontSize: "16px" }}>✓</span>}
+                    </div>
+                  </div>
+
+                  <div style={{ height: "220px", marginBottom: "20px", borderRadius: "16px", overflow: "hidden", backgroundColor: "#f9fafb" }}>
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          transition: "transform 0.3s ease"
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#9ca3af",
+                          fontSize: "14px",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        Nessuna Immagine
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                    <h3 style={{ margin: "0", fontSize: "20px", color: "#111827", fontWeight: "800", lineHeight: "1.3" }}>
+                      {product.name}
+                    </h3>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                    <span style={{ color: "#6b7280", fontSize: "14px", fontWeight: "bold", backgroundColor: "#f3f4f6", padding: "4px 8px", borderRadius: "6px" }}>{product.brand}</span>
+                    <span style={{ color: "#6b7280", fontSize: "14px", backgroundColor: "#f3f4f6", padding: "4px 8px", borderRadius: "6px" }}>{getCategoryName(product.category)}</span>
+                  </div>
+
+                  <div style={{ marginBottom: "auto" }}>
+                    <span
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: "999px",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        backgroundColor: 
+                          product.status === "AVAILABLE" ? "#ecfdf5" :
+                          product.status === "OUT_OF_STOCK" ? "#fffbeb" : 
+                          "#fef2f2",
+                        color:
+                          product.status === "AVAILABLE" ? "#047857" :
+                          product.status === "OUT_OF_STOCK" ? "#b45309" : 
+                          "#b91c1c",
+                        display: "inline-block"
+                      }}
+                    >
+                      {product.status === "OUT_OF_STOCK" ? "Non disponibile" :
+                       product.status === "DISCONTINUED" ? "Fuori produzione" :
+                       "Disponibile"}
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "24px" }}>
+                    <div style={{ color: "#111827", fontSize: "24px", fontWeight: "900" }}>
+                      {product.price} €
+                    </div>
+                    
+                    <button
+                      onClick={() => navigate(`/products/${product.id}`)}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#2563eb",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        fontSize: "14px",
+                        boxShadow: "0 4px 6px -1px rgba(37, 99, 235, 0.2)"
+                      }}
+                    >
+                      Scopri
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>
