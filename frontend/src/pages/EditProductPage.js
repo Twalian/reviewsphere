@@ -84,7 +84,7 @@ function EditProductPage() {
     <div>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
+      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif", maxWidth: "900px", margin: "0 auto" }}>
         <button
           onClick={() => navigate("/admin/products")}
           style={{

@@ -111,7 +111,7 @@ function ModerationPage() {
     <div>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
+      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif", maxWidth: "900px", margin: "0 auto" }}>
         <h1 style={{ marginBottom: "10px" }}>Moderazione Recensioni</h1>
 
         <p style={{ color: "#555", marginBottom: "20px" }}>

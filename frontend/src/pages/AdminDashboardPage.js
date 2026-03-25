@@ -39,9 +39,11 @@ function AdminDashboardPage() {
     <div>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
-        <h1 style={{ marginBottom: "10px" }}>Admin Dashboard</h1>
-        <p style={{ color: "#6b7280", marginBottom: "30px" }}>Statistiche e insights globali della piattaforma.</p>
+      <div style={{ padding: "30px 5%", fontFamily: "Arial, sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h1 style={{ marginBottom: "10px" }}>Admin Dashboard</h1>
+          <p style={{ color: "#6b7280", marginBottom: "30px" }}>Statistiche e insights globali della piattaforma.</p>
+        </div>
 
         {message && (
           <div
@@ -63,7 +65,7 @@ function AdminDashboardPage() {
         {loading ? (
           <p>Caricamento dashboard...</p>
         ) : (
-          <div style={{ maxWidth: "1200px" }}>
+          <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
             {/* Summary Cards */}
             <div
               style={{
@@ -165,64 +167,67 @@ function AdminDashboardPage() {
                 )}
               </div>
 
-              {/* Top Rated Products */}
-              <div
-                style={{
-                  borderRadius: "16px",
-                  padding: "24px",
-                  backgroundColor: "white",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-              >
-                <h2 style={{ marginTop: 0, color: "#166534", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>🏆 Top 10 Prodotti Più Apprezzati</h2>
-                {topRated.length === 0 ? (
-                  <p>Dati non disponibili.</p>
-                ) : (
-                  topRated.map((prod, index) => (
-                    <div
-                      key={prod.id}
-                      style={{
-                        padding: "12px 0",
-                        borderBottom: "1px solid #f3f4f6",
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span>{index + 1}. {prod.name}</span>
-                      <strong style={{ color: "#16a34a" }}>★ {Number(prod.average_rating).toFixed(1)}</strong>
-                    </div>
-                  ))
-                )}
-              </div>
+              {/* Side by side wrapper for Top 10 lists */}
+              <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: "30px" }}>
+                {/* Top Rated Products */}
+                <div
+                  style={{
+                    borderRadius: "16px",
+                    padding: "24px",
+                    backgroundColor: "white",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  <h2 style={{ marginTop: 0, color: "#166534", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>🏆 Top 10 Apprezzati</h2>
+                  {topRated.length === 0 ? (
+                    <p>Dati non disponibili.</p>
+                  ) : (
+                    topRated.map((prod, index) => (
+                      <div
+                        key={prod.id}
+                        style={{
+                          padding: "12px 0",
+                          borderBottom: "1px solid #f3f4f6",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>{index + 1}. {prod.name}</span>
+                        <strong style={{ color: "#16a34a" }}>★ {Number(prod.average_rating).toFixed(1)}</strong>
+                      </div>
+                    ))
+                  )}
+                </div>
 
-              {/* Worst Rated Products */}
-              <div
-                style={{
-                  borderRadius: "16px",
-                  padding: "24px",
-                  backgroundColor: "white",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-              >
-                <h2 style={{ marginTop: 0, color: "#991b1b", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>📉 Top 10 Prodotti Meno Apprezzati</h2>
-                {worstRated.length === 0 ? (
-                  <p>Dati non disponibili.</p>
-                ) : (
-                  worstRated.map((prod, index) => (
-                    <div
-                      key={prod.id}
-                      style={{
-                        padding: "12px 0",
-                        borderBottom: "1px solid #f3f4f6",
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span>{index + 1}. {prod.name}</span>
-                      <strong style={{ color: "#dc2626" }}>★ {Number(prod.average_rating).toFixed(1)}</strong>
-                    </div>
-                  ))
-                )}
+                {/* Worst Rated Products */}
+                <div
+                  style={{
+                    borderRadius: "16px",
+                    padding: "24px",
+                    backgroundColor: "white",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  <h2 style={{ marginTop: 0, color: "#991b1b", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px", marginBottom: "20px" }}>📉 Top 10 Meno Apprezzati</h2>
+                  {worstRated.length === 0 ? (
+                    <p>Dati non disponibili.</p>
+                  ) : (
+                    worstRated.map((prod, index) => (
+                      <div
+                        key={prod.id}
+                        style={{
+                          padding: "12px 0",
+                          borderBottom: "1px solid #f3f4f6",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>{index + 1}. {prod.name}</span>
+                        <strong style={{ color: "#dc2626" }}>★ {Number(prod.average_rating).toFixed(1)}</strong>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
             </div>

@@ -59,6 +59,7 @@ function AdminCategoriesPage() {
     setEditingId(category.id);
     setName(category.name || "");
     setDescription(category.description || "");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function handleDelete(id) {
@@ -75,110 +76,204 @@ function AdminCategoriesPage() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", fontFamily: "Arial, sans-serif" }}>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
-        <h1>Gestione categorie</h1>
+      <div style={{ padding: "40px 5%", maxWidth: "1000px", margin: "0 auto" }}>
+        
+        <div style={{ marginBottom: "30px" }}>
+          <h1 style={{ margin: "0 0 10px 0", color: "#111827" }}>Gestione Categorie</h1>
+          <p style={{ margin: 0, color: "#6b7280" }}>Crea e gestisci i settori del catalogo.</p>
+        </div>
 
         {message && (
           <div
             style={{
               marginBottom: "20px",
-              padding: "12px 16px",
-              borderRadius: "10px",
-              backgroundColor: "#e0f2fe",
-              color: "#075985",
+              padding: "16px 20px",
+              borderRadius: "12px",
+              backgroundColor: message.includes("Errore") ? "#fee2e2" : "#dcfce7",
+              color: message.includes("Errore") ? "#991b1b" : "#166534",
               fontWeight: "bold",
-              maxWidth: "700px",
+              border: `1px solid ${message.includes("Errore") ? "#fecaca" : "#bbf7d0"}`
             }}
           >
             {message}
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            maxWidth: "700px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "14px",
-            marginBottom: "30px",
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Nome categoria"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
-          />
-
-          <textarea
-            placeholder="Descrizione categoria"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows="3"
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              resize: "vertical",
-            }}
-          />
-
-          <button
-            type="submit"
-            style={{
-              width: "240px",
-              padding: "12px",
-              backgroundColor: editingId ? "#1d4ed8" : "#065f46",
-              color: "white",
-              border: "none",
-              borderRadius: "10px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            {editingId ? "Salva modifiche" : "Crea categoria"}
-          </button>
-        </form>
-
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              padding: "16px",
-              marginBottom: "12px",
-              maxWidth: "700px",
-            }}
-          >
-            <h3 style={{ margin: "0 0 8px 0" }}>{category.name}</h3>
-
-            <p style={{ margin: "0 0 12px 0", color: "#4b5563" }}>
-              {category.description}
-            </p>
-
-            <button
-              onClick={() => handleEdit(category)}
-              style={{ marginRight: "10px" }}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "30px" }}>
+          
+          {/* Form Card */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "30px",
+            boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+          }}>
+            <h2 style={{ margin: "0 0 20px 0", color: "#111827", fontSize: "20px" }}>
+              {editingId ? "Modifica Categoria" : "Nuova Categoria"}
+            </h2>
+            <form
+              onSubmit={handleSubmit}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+              }}
             >
-              Modifica
-            </button>
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Nome</label>
+                <input
+                  type="text"
+                  placeholder="Es. Elettronica, Libri..."
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "10px",
+                    border: "1px solid #d1d5db",
+                    boxSizing: "border-box",
+                    backgroundColor: "#f9fafb"
+                  }}
+                />
+              </div>
 
-            <button onClick={() => handleDelete(category.id)}>
-              Elimina
-            </button>
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Descrizione</label>
+                <textarea
+                  placeholder="Descrizione dettagliata..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows="3"
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "10px",
+                    border: "1px solid #d1d5db",
+                    resize: "vertical",
+                    boxSizing: "border-box",
+                    backgroundColor: "#f9fafb"
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 1,
+                    padding: "14px",
+                    backgroundColor: editingId ? "#2563eb" : "#10b981",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: "16px"
+                  }}
+                >
+                  {editingId ? "Salva Modifiche" : "Crea Categoria"}
+                </button>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(null);
+                      setName("");
+                      setDescription("");
+                    }}
+                    style={{
+                      padding: "14px 20px",
+                      backgroundColor: "#f3f4f6",
+                      color: "#4b5563",
+                      border: "none",
+                      borderRadius: "10px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Annulla
+                  </button>
+                )}
+              </div>
+            </form>
           </div>
-        ))}
+
+          {/* List Card */}
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            padding: "30px",
+            boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+          }}>
+            <h2 style={{ margin: "0 0 20px 0", color: "#111827", fontSize: "20px" }}>
+              Categorie Esistenti
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "12px",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    backgroundColor: "#f9fafb",
+                    flexWrap: "wrap",
+                    gap: "20px"
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: "200px" }}>
+                    <h3 style={{ margin: "0 0 4px 0", color: "#111827" }}>{category.name}</h3>
+                    <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", lineHeight: "1.5" }}>
+                      {category.description}
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      onClick={() => handleEdit(category)}
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "white",
+                        color: "#374151",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontWeight: "bold"
+                      }}
+                    >
+                      Modifica
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(category.id)}
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "#fee2e2",
+                        color: "#991b1b",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontWeight: "bold"
+                      }}
+                    >
+                      Elimina
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {categories.length === 0 && (
+                <p style={{ color: "#6b7280", textAlign: "center", margin: 0 }}>Nessuna categoria presente.</p>
+              )}
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );

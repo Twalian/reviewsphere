@@ -50,214 +50,190 @@ function AdminAddProductPage() {
         status: status.trim(),
       };
 
-      console.log("CREATE PRODUCT PAYLOAD:", productPayload);
-
       await createProduct(productPayload);
 
       setMessage("Prodotto creato con successo.");
       setMessageType("success");
 
       setTimeout(() => {
-        navigate("/products");
+        navigate("/admin/products");
       }, 800);
     } catch (error) {
       console.error("CREATE PRODUCT ERROR:", error);
-
-      const backendError =
-        error.message || "Errore durante la creazione del prodotto.";
-
+      const backendError = error.message || "Errore durante la creazione del prodotto.";
       setMessage(backendError);
       setMessageType("error");
     }
   }
 
-
-  function getMessageStyle() {
-    if (messageType === "success") {
-      return {
-        backgroundColor: "#dcfce7",
-        color: "#166534",
-        border: "1px solid #86efac",
-      };
-    }
-
-    return {
-      backgroundColor: "#fee2e2",
-      color: "#991b1b",
-      border: "1px solid #fca5a5",
-    };
-  }
-
   return (
-    <div>
+    <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", fontFamily: "Arial, sans-serif" }}>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif" }}>
+      <div style={{ padding: "40px 5%", maxWidth: "800px", margin: "0 auto" }}>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/admin/products")}
           style={{
-            marginBottom: "20px",
+            marginBottom: "24px",
             padding: "10px 16px",
-            backgroundColor: "#e5e7eb",
-            color: "#111827",
-            border: "none",
-            borderRadius: "10px",
+            backgroundColor: "white",
+            color: "#374151",
+            border: "1px solid #d1d5db",
+            borderRadius: "8px",
             cursor: "pointer",
             fontWeight: "bold",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px"
           }}
         >
-          ← Torna indietro
+          ← Torna ai Prodotti
         </button>
 
-        <h1>Aggiungi nuovo prodotto</h1>
-
-        <p style={{ color: "#4b5563", marginBottom: "24px" }}>
-          Pagina admin per la creazione di un nuovo prodotto.
-        </p>
+        <div style={{ marginBottom: "30px" }}>
+          <h1 style={{ margin: "0 0 10px 0", color: "#111827" }}>Aggiungi Prodotto</h1>
+          <p style={{ margin: 0, color: "#6b7280" }}>Compila il form per inserire un nuovo prodotto a catalogo.</p>
+        </div>
 
         {message && (
           <div
             style={{
-              ...getMessageStyle(),
-              padding: "12px 16px",
-              borderRadius: "10px",
-              marginBottom: "20px",
+              padding: "16px 20px",
+              borderRadius: "12px",
+              marginBottom: "24px",
               fontWeight: "bold",
-              maxWidth: "700px",
-              whiteSpace: "pre-wrap",
+              backgroundColor: messageType === "success" ? "#dcfce7" : "#fee2e2",
+              color: messageType === "success" ? "#166534" : "#991b1b",
+              border: `1px solid ${messageType === "success" ? "#bbf7d0" : "#fca5a5"}`,
             }}
           >
             {message}
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            maxWidth: "700px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "14px",
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Nome prodotto"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
+        <div style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          padding: "40px",
+          boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+        }}>
+          <form
+            onSubmit={handleSubmit}
             style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
-          />
-
-          <textarea
-            placeholder="Descrizione prodotto"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            rows="4"
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              resize: "vertical",
-            }}
-          />
-
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              width: "220px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "24px",
             }}
           >
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Nome Prodotto *</label>
+              <input
+                type="text"
+                placeholder="Es. Smartphone Plus"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid #d1d5db", boxSizing: "border-box", backgroundColor: "#f9fafb" }}
+              />
+            </div>
 
-          <input
-            type="text"
-            placeholder="Marca"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
-          />
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Marca *</label>
+              <input
+                type="text"
+                placeholder="Es. Samsung"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                required
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid #d1d5db", boxSizing: "border-box", backgroundColor: "#f9fafb" }}
+              />
+            </div>
 
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="Prezzo"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              width: "220px",
-            }}
-          />
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Prezzo (€) *</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid #d1d5db", boxSizing: "border-box", backgroundColor: "#f9fafb" }}
+              />
+            </div>
 
-          <input
-            type="text"
-            placeholder="URL immagine"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
-          />
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Categoria *</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid #d1d5db", boxSizing: "border-box", backgroundColor: "#f9fafb" }}
+              >
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
 
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            style={{
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              width: "220px",
-            }}
-          >
-            <option value="AVAILABLE">Available</option>
-            <option value="OUT_OF_STOCK">Out of Stock</option>
-            <option value="DISCONTINUED">Discontinued</option>
-          </select>
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Stato *</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid #d1d5db", boxSizing: "border-box", backgroundColor: "#f9fafb" }}
+              >
+                <option value="AVAILABLE">Available</option>
+                <option value="OUT_OF_STOCK">Out of Stock</option>
+                <option value="DISCONTINUED">Discontinued</option>
+              </select>
+            </div>
 
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>URL Immagine</label>
+              <input
+                type="text"
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid #d1d5db", boxSizing: "border-box", backgroundColor: "#f9fafb" }}
+              />
+            </div>
 
-          <button
-            type="submit"
-            style={{
-              width: "240px",
-              padding: "12px",
-              backgroundColor: "#065f46",
-              color: "white",
-              border: "none",
-              borderRadius: "10px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Crea prodotto
-          </button>
-        </form>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#374151" }}>Descrizione *</label>
+              <textarea
+                placeholder="Inserisci i dettagli del prodotto..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                rows="4"
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid #d1d5db", resize: "vertical", boxSizing: "border-box", backgroundColor: "#f9fafb" }}
+              />
+            </div>
+
+            <div style={{ gridColumn: "1 / -1", marginTop: "10px" }}>
+              <button
+                type="submit"
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  backgroundColor: "#2563eb",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  boxShadow: "0 4px 6px rgba(37, 99, 235, 0.2)"
+                }}
+              >
+                Salva Nuovo Prodotto
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

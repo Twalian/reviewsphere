@@ -52,7 +52,7 @@ function ReportsPage() {
     <div>
       <Navbar />
 
-      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
+      <div style={{ padding: "30px", fontFamily: "Arial, sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh", maxWidth: "900px", margin: "0 auto" }}>
         <h1 style={{ marginBottom: "10px" }}>Monitoraggio Segnalazioni</h1>
         <p style={{ color: "#6b7280", marginBottom: "30px" }}>Gestisci le segnalazioni degli utenti sulle recensioni.</p>
 
