@@ -10,6 +10,8 @@ function ProductsPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState({ message: "", type: "" });
+  const [comparisonModal, setComparisonModal] = useState({ isOpen: false, result: null });
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -80,16 +82,20 @@ function ProductsPage() {
     setError("");
     try {
       const result = await compareProducts(selectedForComparison);
-      setComparisonResult(result);
+      setComparisonModal({ isOpen: true, result });
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }, 100);
     } catch (err) {
       console.error("Errore confronto AI:", err);
-      setError("Errore durante il confronto AI. Riprova più tardi.");
+      setToast({ message: "Errore durante il confronto AI. Riprova più tardi.", type: "error" });
     } finally {
       setComparing(false);
     }
+  }
+
+  function closeComparisonModal() {
+    setComparisonModal({ isOpen: false, result: null });
   }
 
   return (
@@ -104,44 +110,127 @@ function ProductsPage() {
           </p>
         </div>
 
-        {/* AI Comparison Results */}
-        {comparisonResult && (
+        {/* Full Screen Loading Overlay */}
+        {comparing && (
           <div
             style={{
-              marginBottom: "40px",
-              padding: "30px",
-              backgroundColor: "white",
-              border: "2px solid #10b981",
-              borderRadius: "20px",
-              boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)",
-              maxWidth: "1000px",
-              margin: "0 auto 40px auto"
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(255,255,255,0.9)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              backdropFilter: "blur(4px)"
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <h2 style={{ color: "#065f46", margin: 0, display: "flex", alignItems: "center", gap: "10px", fontSize: "24px" }}>
-                <span>🤖</span> Risultato Confronto AI
-              </h2>
-              <button 
-                onClick={() => setComparisonResult(null)}
-                style={{ background: "#f3f4f6", border: "none", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#4b5563", fontWeight: "bold" }}
-              >
-                ✕
-              </button>
+            <div style={{ fontSize: "60px", marginBottom: "20px", animation: "pulse 2s infinite" }}></div>
+            <div style={{ fontSize: "24px", fontWeight: "bold", color: "#1e3a8a", marginBottom: "10px" }}>
+              Analisi in corso...
             </div>
-            
-            <div style={{ fontSize: "16px", lineHeight: "1.7", color: "#374151" }}>
-              <p style={{ whiteSpace: "pre-wrap", margin: "0 0 20px 0" }}>{comparisonResult.comparison}</p>
+            <div style={{ fontSize: "16px", color: "#6b7280" }}>
+              L'AI sta confrontando i prodotti selezionati
+            </div>
+          </div>
+        )}
+
+        {/* Toast Notification */}
+        {toast.message && (
+          <div
+            style={{
+              position: "fixed",
+              top: "20px",
+              right: "20px",
+              padding: "16px 20px",
+              borderRadius: "12px",
+              backgroundColor: toast.type === "success" ? "#dcfce7" : "#fee2e2",
+              color: toast.type === "success" ? "#166534" : "#991b1b",
+              fontWeight: "bold",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+              border: `1px solid ${toast.type === "success" ? "#bbf7d0" : "#fecaca"}`,
+              zIndex: 1100,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "16px",
+              minWidth: "300px"
+            }}
+          >
+            <span>{toast.message}</span>
+            <button
+              onClick={() => setToast({ message: "", type: "" })}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "20px",
+                color: toast.type === "success" ? "#166534" : "#991b1b"
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* AI Comparison Modal */}
+        {comparisonModal.isOpen && comparisonModal.result && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000
+            }}
+            onClick={closeComparisonModal}
+          >
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "20px",
+                padding: "40px",
+                width: "90%",
+                maxWidth: "800px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <h2 style={{ color: "#065f46", margin: 0, fontSize: "24px" }}>
+                  Risultato Confronto AI
+                </h2>
+                <button 
+                  onClick={closeComparisonModal}
+                  style={{ background: "#f3f4f6", border: "none", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#4b5563", fontWeight: "bold" }}
+                >
+                  ✕
+                </button>
+              </div>
               
-              {comparisonResult.winner_recommendation && (
-                <div style={{ padding: "20px", backgroundColor: "#ecfdf5", borderRadius: "12px", border: "1px solid #a7f3d0", display: "flex", gap: "15px", alignItems: "flex-start" }}>
-                  <div style={{ fontSize: "28px", marginTop: "-4px" }}>🏆</div>
-                  <div>
-                    <strong style={{ color: "#047857", display: "block", marginBottom: "8px", fontSize: "18px" }}>Raccomandazione Definitiva:</strong>
-                    <span style={{ color: "#065f46", lineHeight: "1.5" }}>{comparisonResult.winner_recommendation}</span>
+              <div style={{ fontSize: "16px", lineHeight: "1.7", color: "#374151" }}>
+                <p style={{ whiteSpace: "pre-wrap", margin: "0 0 20px 0" }}>{comparisonModal.result.comparison}</p>
+                
+                {comparisonModal.result.winner_recommendation && (
+                  <div style={{ padding: "20px", backgroundColor: "#ecfdf5", borderRadius: "12px", border: "1px solid #a7f3d0", display: "flex", gap: "15px", alignItems: "flex-start" }}>
+                    <div style={{ fontSize: "28px", marginTop: "-4px" }}>🏆</div>
+                    <div>
+                      <strong style={{ color: "#047857", display: "block", marginBottom: "8px", fontSize: "18px" }}>Raccomandazione Definitiva:</strong>
+                      <span style={{ color: "#065f46", lineHeight: "1.5" }}>{comparisonModal.result.winner_recommendation}</span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -165,10 +165,23 @@ def get_product_AI_summary(request, product_id):
     reviews = (
         Review.objects
         .filter(product=product, status=Review.ReviewStatus.APPROVED)
-        .select_related("user", "product")
+        .order_by('-date')
     )
 
-    lista: dict = [
+    if not reviews.exists():
+        return Response(
+            {"error": "Nessuna recensione approvata per questo prodotto"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    latest_review = reviews.first()
+    
+    # Check if cache is valid
+    if product.ai_summary and product.summary_last_updated:
+        if product.summary_last_updated >= latest_review.date:
+            return Response(product.ai_summary, status=status.HTTP_200_OK)
+
+    lista = [
         {
             "title": review.title,
             "description": review.description,
@@ -177,26 +190,30 @@ def get_product_AI_summary(request, product_id):
         for review in reviews
     ]
 
-    if not lista:
-        return Response(
-            {"error": "Nessuna recensione approvata per questo prodotto"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
     try:
         provider = get_ai_provider()
         result = provider.synthesize_reviews(lista)
+
+        summary_data = {
+            "summary": result.summary,
+            "pros": result.pros,
+            "cons": result.cons
+        }
+
+        # Save cache
+        product.ai_summary = summary_data
+        
+        from django.utils import timezone
+        product.summary_last_updated = timezone.now()
+        product.save()
+
+        return Response(summary_data, status=status.HTTP_200_OK)
 
     except AIProviderError:
         return Response(
                 {"error": "Servizio non disponibile"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
-        
-    return Response({                     
-    "summary": result.summary,
-    "pros": result.pros,
-    "cons": result.cons}, status=status.HTTP_200_OK)
   
 # Moderation endpoints - accessibile a Moderatore e Admin
 @api_view(["PATCH"])

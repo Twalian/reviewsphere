@@ -4,7 +4,7 @@ import { getAdminUsers, updateUserRole } from "../api/users";
 
 function AdminUsersPage() {
   const [users, setUsers] = useState([]);
-  const [message, setMessage] = useState("");
+  const [toast, setToast] = useState({ message: "", type: "" });
 
   useEffect(() => {
     loadUsers();
@@ -16,18 +16,18 @@ function AdminUsersPage() {
       setUsers(data);
     } catch (error) {
       console.error("Errore caricamento utenti", error);
-      setMessage("Errore caricamento utenti.");
+      setToast({ message: "Errore caricamento utenti.", type: "error" });
     }
   }
 
   async function handleRoleChange(id, newRole) {
     try {
       await updateUserRole(id, newRole);
-      setMessage("Ruolo aggiornato con successo.");
+      setToast({ message: "Ruolo aggiornato con successo.", type: "success" });
       loadUsers();
     } catch (error) {
       console.error("Errore aggiornamento ruolo", error);
-      setMessage(error.message || "Errore aggiornamento ruolo.");
+      setToast({ message: error.message || "Errore aggiornamento ruolo.", type: "error" });
     }
   }
 
@@ -41,19 +41,35 @@ function AdminUsersPage() {
           <p style={{ margin: 0, color: "#6b7280" }}>Amministra gli account e i permessi della piattaforma.</p>
         </div>
 
-        {message && (
+        {/* Toast Notification */}
+        {toast.message && (
           <div
             style={{
               marginBottom: "24px",
               padding: "16px 20px",
               borderRadius: "12px",
-              backgroundColor: message.includes("Errore") ? "#fee2e2" : "#dcfce7",
-              color: message.includes("Errore") ? "#991b1b" : "#166534",
+              backgroundColor: toast.type === "success" ? "#dcfce7" : "#fee2e2",
+              color: toast.type === "success" ? "#166534" : "#991b1b",
               fontWeight: "bold",
-              border: `1px solid ${message.includes("Errore") ? "#fecaca" : "#bbf7d0"}`
+              border: `1px solid ${toast.type === "success" ? "#bbf7d0" : "#fecaca"}`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
             }}
           >
-            {message}
+            <span>{toast.message}</span>
+            <button
+              onClick={() => setToast({ message: "", type: "" })}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "20px",
+                color: toast.type === "success" ? "#166534" : "#991b1b"
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
 

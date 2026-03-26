@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../hooks/useAuth";
 import { getProducts } from "../api/products";
@@ -13,6 +13,7 @@ import {
 
 function ProductDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
@@ -23,6 +24,8 @@ function ProductDetailPage() {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // "success" or "error"
   const [sort, setSort] = useState("newest");
+  const [reportModal, setReportModal] = useState({ isOpen: false, reviewId: null, reason: "", success: false });
+  const [reviewModal, setReviewModal] = useState({ isOpen: false, type: "", message: "" });
 
   const [title, setTitle] = useState("");
   const [vote, setVote] = useState(5);
@@ -61,6 +64,7 @@ function ProductDetailPage() {
     e.preventDefault();
     setMessage("");
     setMessageType("");
+    setReviewModal({ isOpen: false, type: "", message: "" });
 
     try {
       const payload = {
@@ -72,22 +76,50 @@ function ProductDetailPage() {
 
       await addReview(payload);
 
-      setMessage("Recensione inviata con successo! Sarà visibile una volta approvata.");
-      setMessageType("success");
+      setReviewModal({ 
+        isOpen: true, 
+        type: "success", 
+        message: "Recensione inviata con successo! Sarà visibile dopo l'approvazione da parte di un moderatore." 
+      });
       setTitle("");
       setVote(5);
       setDescription("");
 
       loadData();
     } catch (error) {
-      console.error("Errore invio recensione:", error);
+      console.error("Errore invio recensione", error);
 
-      if (error.status === 409 || error.message?.includes("409")) {
-        setMessage("Hai già inviato una recensione per questo prodotto.");
+      const errorMessage = error.message || "";
+      const errorData = error.data;
+      const isDuplicateError = 
+        error.status === 409 || 
+        errorMessage.includes("409") || 
+        errorMessage.includes("già") || 
+        errorMessage.includes("già recensito") ||
+        (errorData?.error && errorData.error.includes("già"));
+
+      if (isDuplicateError) {
+        setReviewModal({ 
+          isOpen: true, 
+          type: "error", 
+          message: "Hai già recensito questo prodotto, non puoi creare una nuova recensione. Accedi al tuo profilo per modificare o eliminare la tua recensione esistente." 
+        });
       } else {
-        setMessage(error.message || "Errore durante l'invio della recensione.");
+        // Extract clean error message - avoid raw JSON
+        let cleanMessage = "Errore durante l'invio della recensione.";
+        if (errorData?.error) {
+          cleanMessage = errorData.error;
+        } else if (errorData?.detail) {
+          cleanMessage = errorData.detail;
+        } else if (!errorMessage.includes("API request failed") && !errorMessage.includes("409")) {
+          cleanMessage = errorMessage;
+        }
+        setReviewModal({ 
+          isOpen: true, 
+          type: "error", 
+          message: cleanMessage 
+        });
       }
-      setMessageType("error");
     }
   }
 
@@ -127,19 +159,27 @@ function ProductDetailPage() {
   }
 
   async function handleReport(reviewId) {
-    const reason = window.prompt("Scrivi il motivo della segnalazione:");
+    setReportModal({ isOpen: true, reviewId });
+  }
 
-    if (!reason || !reason.trim()) return;
-
-    try {
-      await reportReview(reviewId, reason.trim());
-      setMessage("Segnalazione inviata con successo.");
-      setMessageType("success");
-    } catch (error) {
-      console.error("Errore segnalazione recensione:", error);
-      setMessage(error.message || "Errore durante la segnalazione.");
-      setMessageType("error");
+  function handleReportSubmit() {
+    if (!reportModal.reason || !reportModal.reason.trim()) {
+      setReportModal({ ...reportModal, error: "Inserisci il motivo della segnalazione." });
+      return;
     }
+
+    reportReview(reportModal.reviewId, reportModal.reason.trim())
+      .then(() => {
+        setReportModal({ ...reportModal, success: true, error: "" });
+      })
+      .catch((error) => {
+        console.error("Errore segnalazione recensione:", error);
+        setReportModal({ ...reportModal, error: error.message || "Errore durante la segnalazione." });
+      });
+  }
+
+  function closeReportModal() {
+    setReportModal({ isOpen: false, reviewId: null, reason: "", success: false, error: "" });
   }
 
   async function handleLoadAiSummary() {
@@ -164,7 +204,234 @@ function ProductDetailPage() {
     <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", fontFamily: "'Inter', Arial, sans-serif", paddingBottom: "60px" }}>
       <Navbar />
 
+      {/* Report Modal */}
+      {reportModal.isOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }}
+          onClick={closeReportModal}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              padding: "30px",
+              width: "90%",
+              maxWidth: "500px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {reportModal.success ? (
+              <>
+                <div style={{ textAlign: "center", padding: "20px 0" }}>
+                  <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
+                  <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "#166534", fontWeight: "900" }}>
+                    Segnalazione inviata!
+                  </h3>
+                  <p style={{ color: "#374151", margin: "0 0 20px 0" }}>
+                    La tua segnalazione è stata ricevuta e sarà esaminata dal team di moderazione.
+                  </p>
+                </div>
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <button
+                    onClick={closeReportModal}
+                    style={{
+                      padding: "12px 32px",
+                      borderRadius: "10px",
+                      border: "none",
+                      backgroundColor: "#2563eb",
+                      color: "white",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Chiudi
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ margin: "0 0 20px 0", fontSize: "20px", color: "#111827", fontWeight: "900" }}>
+                  Segnala recensione
+                </h3>
+                {reportModal.error && (
+                  <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#fee2e2", color: "#991b1b", borderRadius: "8px", fontWeight: "bold", fontSize: "14px" }}>
+                    {reportModal.error}
+                  </div>
+                )}
+                <textarea
+                  placeholder="Inserisci il motivo della segnalazione..."
+                  value={reportModal.reason}
+                  onChange={(e) => setReportModal({ ...reportModal, reason: e.target.value, error: "" })}
+                  rows={4}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: "12px",
+                    border: "1px solid #d1d5db",
+                    backgroundColor: "#f9fafb",
+                    resize: "vertical",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    fontSize: "14px",
+                    lineHeight: "1.5"
+                  }}
+                />
+                <div style={{ display: "flex", gap: "12px", marginTop: "20px", justifyContent: "flex-end" }}>
+                  <button
+                    onClick={closeReportModal}
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: "10px",
+                      border: "1px solid #d1d5db",
+                      backgroundColor: "white",
+                      color: "#4b5563",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    onClick={handleReportSubmit}
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: "10px",
+                      border: "none",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Conferma
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal - Success/Error */}
+      {reviewModal.isOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }}
+          onClick={() => setReviewModal({ isOpen: false, type: "", message: "" })}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              padding: "30px",
+              width: "90%",
+              maxWidth: "500px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+                  {reviewModal.type === "success" ? "✅" : "⚠️"}
+                </div>
+                <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: reviewModal.type === "success" ? "#166534" : "#991b1b", fontWeight: "900" }}>
+                  {reviewModal.type === "success" ? "Successo" : "Errore"}
+                </h3>
+                <p style={{ color: "#374151", margin: "0 0 20px 0" }}>
+                  {reviewModal.message}
+                </p>
+              </div>
+              <button
+                onClick={() => setReviewModal({ isOpen: false, type: "", message: "" })}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "24px",
+                  color: "#6b7280",
+                  padding: "0",
+                  lineHeight: "1"
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <button
+                onClick={() => {
+                  setReviewModal({ isOpen: false, type: "", message: "" });
+                  if (reviewModal.type === "success") {
+                    loadData();
+                  }
+                }}
+                style={{
+                  padding: "12px 32px",
+                  borderRadius: "10px",
+                  border: "none",
+                  backgroundColor: "#2563eb",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "14px"
+                }}
+              >
+                Chiudi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ padding: "40px 5%", maxWidth: "1200px", margin: "0 auto" }}>
+
+        {/* Back to Products Button */}
+        <div style={{ marginBottom: "20px" }}>
+          <button
+            onClick={() => navigate("/products")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 16px",
+              backgroundColor: "white",
+              color: "#374151",
+              border: "1px solid #d1d5db",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+            }}
+          >
+            ← Tutti i prodotti
+          </button>
+        </div>
 
         {message && (
           <div
@@ -176,10 +443,25 @@ function ProductDetailPage() {
               color: messageType === "success" ? "#166534" : "#991b1b",
               fontWeight: "bold",
               boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
-              border: `1px solid ${messageType === "success" ? "#bbf7d0" : "#fecaca"}`
+              border: `1px solid ${messageType === "success" ? "#bbf7d0" : "#fecaca"}`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
             }}
           >
-            {message}
+            <span>{message}</span>
+            <button
+              onClick={() => { setMessage(""); setMessageType(""); }}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "20px",
+                color: messageType === "success" ? "#166534" : "#991b1b"
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
 
@@ -250,11 +532,6 @@ function ProductDetailPage() {
                       "Disponibile"}
                 </span>
 
-                {product.category && (
-                  <span style={{ color: "#6b7280", fontSize: "16px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
-                    <span style={{ color: "#d1d5db", marginRight: "10px" }}>|</span> {product.category}
-                  </span>
-                )}
               </div>
 
               <div style={{ padding: "30px", backgroundColor: "#f9fafb", borderRadius: "20px", flex: 1, border: "1px solid #f3f4f6" }}>
@@ -286,16 +563,21 @@ function ProductDetailPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: aiSummaryRequested ? "20px" : 0 }}>
                 <div>
                   <h2 style={{ margin: "0 0 8px 0", display: "flex", alignItems: "center", gap: "10px", color: "#1e3a8a", fontSize: "24px", fontWeight: "900" }}>
-                    <span style={{ fontSize: "28px" }}>🤖</span> Sintesi Intelligente
+                    Sintesi Intelligente
                   </h2>
-                  {!aiSummaryRequested && (
+                  {!aiSummaryRequested && user && (
                     <p style={{ color: "#3b82f6", margin: 0, fontSize: "15px", lineHeight: "1.5" }}>
                       Lascia che l'AI legga tutte le recensioni per te ed estrapoli pro e contro.
                     </p>
                   )}
+                  {!aiSummaryRequested && !user && (
+                    <p style={{ color: "#6b7280", margin: 0, fontSize: "15px", lineHeight: "1.5" }}>
+                      Effettua il login per generare la sintesi AI delle recensioni.
+                    </p>
+                  )}
                 </div>
 
-                {!aiSummaryRequested && (
+                {!aiSummaryRequested && user && (
                   <button
                     onClick={handleLoadAiSummary}
                     style={{
@@ -596,24 +878,26 @@ function ProductDetailPage() {
                       </div>
 
                       <div style={{ display: "flex", gap: "12px" }}>
-                        <button
-                          onClick={() => handleHelpful(review.id)}
-                          style={{
-                            padding: "10px 16px",
-                            borderRadius: "10px",
-                            border: review.user_marked_helpful ? "2px solid #3b82f6" : "1px solid #d1d5db",
-                            backgroundColor: review.user_marked_helpful ? "#eff6ff" : "white",
-                            color: review.user_marked_helpful ? "#1d4ed8" : "#4b5563",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            transition: "all 0.2s ease"
-                          }}
-                        >
-                          👍 Utile ({review.helpful_count ?? 0})
-                        </button>
+                        {user?.role === "CLIENT" && user?.username !== review.username && (
+                          <button
+                            onClick={() => handleHelpful(review.id)}
+                            style={{
+                              padding: "10px 16px",
+                              borderRadius: "10px",
+                              border: review.user_marked_helpful ? "2px solid #3b82f6" : "1px solid #d1d5db",
+                              backgroundColor: review.user_marked_helpful ? "#eff6ff" : "white",
+                              color: review.user_marked_helpful ? "#1d4ed8" : "#4b5563",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              transition: "all 0.2s ease"
+                            }}
+                          >
+                            👍 Utile ({review.helpful_count ?? 0})
+                          </button>
+                        )}
 
                         {user?.role === "CLIENT" && user?.username !== review.username && (
                           <button

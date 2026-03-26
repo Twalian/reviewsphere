@@ -11,10 +11,12 @@ function ProfilePage() {
   const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editVote, setEditVote] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, reviewId: null });
 
   useEffect(() => {
     loadMyReviews();
@@ -69,6 +71,7 @@ function ProfilePage() {
       );
 
       setMessage("Recensione aggiornata con successo.");
+      setMessageType("success");
       handleCancelEdit();
     } catch (error) {
       console.error("Errore modifica recensione", error);
@@ -76,17 +79,31 @@ function ProfilePage() {
     }
   }
 
-  async function handleDelete(reviewId) {
-    if (!window.confirm("Vuoi eliminare questa recensione?")) return;
+  function openDeleteModal(reviewId) {
+    setDeleteModal({ isOpen: true, reviewId });
+  }
 
+  function closeDeleteModal() {
+    setDeleteModal({ isOpen: false, reviewId: null });
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteModal.reviewId) return;
     try {
-      await deleteReview(reviewId);
-      setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+      await deleteReview(deleteModal.reviewId);
+      setReviews((prev) => prev.filter((review) => review.id !== deleteModal.reviewId));
       setMessage("Recensione eliminata con successo.");
+      setMessageType("success");
     } catch (error) {
       console.error("Errore eliminazione recensione", error);
       setMessage(error.message || "Errore durante l'eliminazione della recensione.");
+      setMessageType("error");
     }
+    closeDeleteModal();
+  }
+
+  async function handleDelete(reviewId) {
+    openDeleteModal(reviewId);
   }
 
   function renderStars(value) {
@@ -163,14 +180,97 @@ function ProfilePage() {
             marginBottom: "24px",
             padding: "16px 20px",
             borderRadius: "12px",
-            backgroundColor: message.includes("Errore") ? "#fee2e2" : "#dcfce7",
-            color: message.includes("Errore") ? "#991b1b" : "#166534",
+            backgroundColor: messageType === "success" ? "#dcfce7" : messageType === "error" ? "#fee2e2" : "#dcfce7",
+            color: messageType === "success" ? "#166534" : messageType === "error" ? "#991b1b" : "#166534",
             fontWeight: "600",
-            border: `1px solid ${message.includes("Errore") ? "#fecaca" : "#bbf7d0"}`,
+            border: `1px solid ${messageType === "success" ? "#bbf7d0" : messageType === "error" ? "#fecaca" : "#bbf7d0"}`,
             display: "flex",
-            justifyContent: "center"
+            justifyContent: "space-between",
+            alignItems: "center"
           }}>
-            {message}
+            <span>{message}</span>
+            <button
+              onClick={() => { setMessage(""); setMessageType(""); }}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "20px",
+                color: messageType === "success" ? "#166534" : messageType === "error" ? "#991b1b" : "#166534"
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteModal.isOpen && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000
+            }}
+            onClick={closeDeleteModal}
+          >
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "16px",
+                padding: "30px",
+                width: "90%",
+                maxWidth: "400px",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ margin: "0 0 16px 0", fontSize: "20px", color: "#111827", fontWeight: "900" }}>
+                Conferma eliminazione
+              </h3>
+              <p style={{ color: "#4b5563", margin: "0 0 24px 0" }}>
+                Sei sicuro di voler eliminare questa recensione? L'azione non può essere annullata.
+              </p>
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                <button
+                  onClick={closeDeleteModal}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "10px",
+                    border: "1px solid #d1d5db",
+                    backgroundColor: "white",
+                    color: "#4b5563",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: "14px"
+                  }}
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "10px",
+                    border: "none",
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: "14px"
+                  }}
+                >
+                  Elimina
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -254,7 +354,7 @@ function ProfilePage() {
                     
                     <div style={{ display: "flex", gap: "12px", borderTop: "1px solid #f1f5f9", paddingTop: "16px" }}>
                       <button onClick={() => handleEdit(review)} style={{ padding: "8px 16px", backgroundColor: "white", color: "#3b82f6", border: "1px solid #bfdbfe", borderRadius: "8px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Modifica</button>
-                      <button onClick={() => handleDelete(review.id)} style={{ padding: "8px 16px", backgroundColor: "white", color: "#ef4444", border: "1px solid #fecaca", borderRadius: "8px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Elimina</button>
+                      <button onClick={() => openDeleteModal(review.id)} style={{ padding: "8px 16px", backgroundColor: "white", color: "#ef4444", border: "1px solid #fecaca", borderRadius: "8px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}>Elimina</button>
                     </div>
                   </>
                 )}

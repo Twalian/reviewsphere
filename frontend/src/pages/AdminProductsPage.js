@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, productId: null, productName: "" });
+  const [toast, setToast] = useState({ message: "", type: "" });
 
   useEffect(() => {
     loadProducts();
@@ -20,20 +22,137 @@ function AdminProductsPage() {
     }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm("Vuoi eliminare questo prodotto?")) return;
+  function confirmDelete(id, name) {
+    setDeleteModal({ isOpen: true, productId: id, productName: name });
+  }
 
+  async function handleDelete() {
     try {
-      await deleteProduct(id);
+      await deleteProduct(deleteModal.productId);
+      setToast({ message: "Prodotto eliminato con successo!", type: "success" });
+      setDeleteModal({ isOpen: false, productId: null, productName: "" });
       loadProducts();
     } catch (error) {
       console.error("Errore eliminazione prodotto", error);
+      setToast({ message: "Errore durante l'eliminazione del prodotto.", type: "error" });
     }
+  }
+
+  function closeDeleteModal() {
+    setDeleteModal({ isOpen: false, productId: null, productName: "" });
   }
 
   return (
     <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", fontFamily: "Arial, sans-serif" }}>
       <Navbar />
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }}
+          onClick={closeDeleteModal}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              padding: "30px",
+              width: "90%",
+              maxWidth: "500px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: "0 0 16px 0", fontSize: "20px", color: "#111827", fontWeight: "900" }}>
+              Conferma eliminazione
+            </h3>
+            <p style={{ color: "#374151", margin: "0 0 24px 0" }}>
+              Sei sicuro di voler eliminare il prodotto <strong>"{deleteModal.productName}"</strong>? L'azione non può essere annullata.
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                onClick={closeDeleteModal}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "10px",
+                  border: "1px solid #d1d5db",
+                  backgroundColor: "white",
+                  color: "#4b5563",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "14px"
+                }}
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "10px",
+                  border: "none",
+                  backgroundColor: "#dc2626",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "14px"
+                }}
+              >
+                Elimina
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.message && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            padding: "16px 20px",
+            borderRadius: "12px",
+            backgroundColor: toast.type === "success" ? "#dcfce7" : "#fee2e2",
+            color: toast.type === "success" ? "#166534" : "#991b1b",
+            fontWeight: "bold",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+            border: `1px solid ${toast.type === "success" ? "#bbf7d0" : "#fecaca"}`,
+            zIndex: 1100,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "16px",
+            minWidth: "300px"
+          }}
+        >
+          <span>{toast.message}</span>
+          <button
+            onClick={() => setToast({ message: "", type: "" })}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "20px",
+              color: toast.type === "success" ? "#166534" : "#991b1b"
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div style={{ padding: "40px 5%", maxWidth: "1000px", margin: "0 auto" }}>
         
@@ -112,7 +231,7 @@ function AdminProductsPage() {
                   Modifica
                 </button>
                 <button 
-                  onClick={() => handleDelete(p.id)}
+                  onClick={() => confirmDelete(p.id, p.name)}
                   style={{
                     padding: "10px 16px",
                     backgroundColor: "#fee2e2",

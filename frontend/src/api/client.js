@@ -20,12 +20,14 @@ export async function apiRequest(endpoint, options = {}) {
 
   if (!response.ok) {
     let errorMessage = `API request failed: ${response.status}`;
+    let errorData = null;
 
     try {
-      const errorData = await response.json();
+      errorData = await response.json();
       errorMessage =
         errorData.detail ||
         errorData.message ||
+        errorData.error ||
         JSON.stringify(errorData) ||
         errorMessage;
     } catch {
@@ -39,10 +41,12 @@ export async function apiRequest(endpoint, options = {}) {
       }
     }
 
-    throw new Error(errorMessage);
+    // Include response status and data for detailed error handling in components
+    const error = new Error(errorMessage);
+    error.status = response.status;
+    error.data = errorData;
+    throw error;
   }
-
-  
 
   if (response.status === 204) {
     return null;

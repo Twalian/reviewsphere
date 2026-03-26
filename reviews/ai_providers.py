@@ -209,9 +209,10 @@ class GeminiProvider(AIProvider):
 
             prompt = (
                 f"Compare the following products based on their aggregated review summaries and ratings in ITALIAN.\n"
-                f"Identify key differences, which one is better for which use case, and give a final recommendation.\n"
+                f"Identify key differences, pros and cons of each product, which one is better for which use case, and give a final recommendation.\n"
+                f"Include explicitly the pros and cons of each product along with the AI recommendation.\n"
                 f"Return ONLY a JSON object with this structure:\n"
-                f'{{"comparison": "Testo dettagliato del confronto...", "winner_recommendation": "Nome Prodotto - motivo"}}\n'
+                f'{{"comparison": "Testo dettagliato del confronto con pro e contro...", "winner_recommendation": "Nome Prodotto - motivo"}}\n'
                 f"IMPORTANT: All text (comparison and winner_recommendation) MUST BE IN ITALIAN.\n\n"
                 f"{comparison_context}"
             )
@@ -297,9 +298,10 @@ class OpenRouterProvider(AIProvider):
 
         prompt = (
             f"Compare the following products based on their aggregated review summaries and ratings in ITALIAN.\n"
-            f"Identify key differences, which one is better for which use case, and give a final recommendation.\n"
+            f"Identify key differences, pros and cons of each product, which one is better for which use case, and give a final recommendation.\n"
+            f"Include explicitly the pros and cons of each product along with the AI recommendation.\n"
             f"Return ONLY a JSON object with this structure:\n"
-            f'{{"comparison": "Testo dettagliato del confronto...", "winner_recommendation": "Nome Prodotto - motivo"}}\n'
+            f'{{"comparison": "Testo dettagliato del confronto con pro e contro...", "winner_recommendation": "Nome Prodotto - motivo"}}\n'
             f"IMPORTANT: All text (comparison and winner_recommendation) MUST BE IN ITALIAN.\n\n"
             f"{comparison_context}"
         )

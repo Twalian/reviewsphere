@@ -62,17 +62,32 @@ function AdminCategoriesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm("Vuoi eliminare questa categoria?")) return;
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, categoryId: null });
+
+  function openDeleteModal(id) {
+    setDeleteModal({ isOpen: true, categoryId: id });
+  }
+
+  function closeDeleteModal() {
+    setDeleteModal({ isOpen: false, categoryId: null });
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteModal.categoryId) return;
 
     try {
-      await deleteCategory(id);
+      await deleteCategory(deleteModal.categoryId);
       setMessage("Categoria eliminata con successo.");
       loadCategories();
     } catch (error) {
       console.error("Errore eliminazione categoria", error);
       setMessage(error.message || "Errore durante l'eliminazione.");
     }
+    closeDeleteModal();
+  }
+
+  async function handleDelete(id) {
+    openDeleteModal(id);
   }
 
   return (
@@ -251,7 +266,7 @@ function AdminCategoriesPage() {
                       Modifica
                     </button>
                     <button 
-                      onClick={() => handleDelete(category.id)}
+                      onClick={() => openDeleteModal(category.id)}
                       style={{
                         padding: "8px 16px",
                         backgroundColor: "#fee2e2",
@@ -273,6 +288,75 @@ function AdminCategoriesPage() {
             </div>
           </div>
 
+          {/* Delete Confirmation Modal */}
+          {deleteModal.isOpen && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0,0,0,0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1000
+              }}
+              onClick={closeDeleteModal}
+            >
+              <div
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "16px",
+                  padding: "30px",
+                  width: "90%",
+                  maxWidth: "400px",
+                  boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 style={{ margin: "0 0 16px 0", fontSize: "20px", color: "#111827", fontWeight: "900" }}>
+                  Conferma eliminazione
+                </h3>
+                <p style={{ color: "#4b5563", margin: "0 0 24px 0" }}>
+                  Sei sicuro di voler eliminare questa categoria? L'azione non può essere annullata.
+                </p>
+                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                  <button
+                    onClick={closeDeleteModal}
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: "10px",
+                      border: "1px solid #d1d5db",
+                      backgroundColor: "white",
+                      color: "#4b5563",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: "10px",
+                      border: "none",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Elimina
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

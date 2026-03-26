@@ -39,6 +39,10 @@ class Product(models.Model):
         choices=STATUS_CHOICES,
         default='inactive'
     )
+    
+    # AI Caching fields
+    ai_summary = models.JSONField(null=True, blank=True, help_text="Cached AI synthesis result")
+    summary_last_updated = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Product"
@@ -53,9 +57,24 @@ class Product(models.Model):
             status='APPROVED'
         ).aggregate(avg=Avg('vote'))
         return round(result['avg'], 2) if result['avg'] else None
-    
-"""@property significa che average_rating si usa come se fosse un campo (product.average_rating) ma in realtà è un metodo che calcola
-il valore al volo interrogando il DB — per questo non richiede migrazione."""
 
 
+class ProductComparison(models.Model):
+    """
+    Cache for AI product comparison results.
+    """
+    products_hash = models.CharField(
+        max_length=200,
+        unique=True,
+        help_text="Sorted, concatenated string of product IDs (e.g., '1-4-5')"
+    )
+    comparison_text = models.TextField(help_text="Cached comparison result with pros/cons")
+    winner_recommendation = models.TextField(help_text="AI winner recommendation")
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Product Comparison"
+        verbose_name_plural = "Product Comparisons"
+
+    def __str__(self):
+        return f"Comparison: {self.products_hash}"

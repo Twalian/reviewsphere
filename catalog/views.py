@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Q, Count
-from .models import Category, Product
+from .models import Category, Product, ProductComparison
 from .serializers import CategorySerializer, ProductSerializer
 from users.permissions import IsAdmin
 from django.db.models.functions import TruncMonth
@@ -81,6 +81,19 @@ class ProductViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Create products hash for caching
+        sorted_ids = sorted([str(id) for id in product_ids])
+        products_hash = "-".join(sorted_ids)
+
+        # Check cache first
+        cached = ProductComparison.objects.filter(products_hash=products_hash).first()
+        if cached:
+            return Response({
+                "comparison": cached.comparison_text,
+                "winner_recommendation": cached.winner_recommendation,
+                "cached": True
+            }, status=status.HTTP_200_OK)
+
         products = Product.objects.filter(id__in=product_ids).prefetch_related('reviews')
         if not products.exists():
             return Response({"error": "Nessun prodotto trovato"}, status=status.HTTP_404_NOT_FOUND)
@@ -112,6 +125,13 @@ class ProductViewSet(viewsets.ModelViewSet):
 
             # 2. Compare the synthesized data
             comparison_result = provider.compare_products(products_data)
+
+            # Cache the result
+            ProductComparison.objects.create(
+                products_hash=products_hash,
+                comparison_text=comparison_result.comparison,
+                winner_recommendation=comparison_result.winner_recommendation
+            )
 
             return Response({
                 "comparison": comparison_result.comparison,

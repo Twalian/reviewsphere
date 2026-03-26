@@ -5,7 +5,7 @@ import { getReviewReports, resolveReviewReport } from "../api/reviews";
 function ReportsPage() {
   const [reports, setReports] = useState([]);
   const [filterStatus, setFilterStatus] = useState("PENDING");
-  const [message, setMessage] = useState("");
+  const [toast, setToast] = useState({ message: "", type: "" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ function ReportsPage() {
       setReports(data || []);
     } catch (error) {
       console.error("Errore caricamento segnalazioni:", error);
-      setMessage("Errore caricamento segnalazioni.");
+      setToast({ message: "Errore caricamento segnalazioni.", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -37,14 +37,15 @@ function ReportsPage() {
         loadReports();
       }
       
-      setMessage(
-        action === "hide"
+      setToast({
+        message: action === "hide"
           ? "Segnalazione risolta: recensione nascosta."
-          : "Segnalazione risolta: recensione mantenuta visibile."
-      );
+          : "Segnalazione risolta: recensione mantenuta visibile.",
+        type: "success"
+      });
     } catch (error) {
       console.error("Errore risoluzione segnalazione:", error);
-      setMessage(error.message || "Errore durante la risoluzione.");
+      setToast({ message: error.message || "Errore durante la risoluzione.", type: "error" });
     }
   }
 
@@ -56,19 +57,36 @@ function ReportsPage() {
         <h1 style={{ marginBottom: "10px" }}>Monitoraggio Segnalazioni</h1>
         <p style={{ color: "#6b7280", marginBottom: "30px" }}>Gestisci le segnalazioni degli utenti sulle recensioni.</p>
 
-        {message && (
+        {/* Toast Notification */}
+        {toast.message && (
           <div
             style={{
               marginBottom: "20px",
-              padding: "12px 16px",
-              borderRadius: "10px",
-              backgroundColor: message.includes("Errore") ? "#fee2e2" : "#dcfce7",
-              color: message.includes("Errore") ? "#991b1b" : "#166534",
+              padding: "16px 20px",
+              borderRadius: "12px",
+              backgroundColor: toast.type === "success" ? "#dcfce7" : "#fee2e2",
+              color: toast.type === "success" ? "#166534" : "#991b1b",
               fontWeight: "bold",
-              maxWidth: "900px",
+              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+              border: `1px solid ${toast.type === "success" ? "#bbf7d0" : "#fecaca"}`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
             }}
           >
-            {message}
+            <span>{toast.message}</span>
+            <button
+              onClick={() => setToast({ message: "", type: "" })}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "20px",
+                color: toast.type === "success" ? "#166534" : "#991b1b"
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
 
