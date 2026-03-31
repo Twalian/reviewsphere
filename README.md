@@ -1,6 +1,9 @@
-# ReviewSphere - Community-Driven Product Reviews
+# ReviewSphere - Recensioni di Prodotti Guidate dalla Community
 
-ReviewSphere is a platform for community-driven product reviews with AI-powered sentiment analysis, synthesis, and comparison features.
+ReviewSphere è una piattaforma per recensioni di prodotti guidate dalla community, con analisi del sentiment, sintesi e funzionalità di confronto potenziate dall'intelligenza artificiale.
+
+## 📊 Presentazione del Progetto
+Puoi visualizzare la presentazione slide che racconta il progetto qui: [ReviewSphere Presentation (Canva)](https://canva.link/jtbfd8ih5w5bvdk)
 
 ## 🚀 Avvio Rapido
 
@@ -16,7 +19,12 @@ Il backend gestisce l'API, l'autenticazione JWT e l'integrazione AI.
 3. **Dipendenze**: `pip install -r requirements.txt`
 4. **Configurazione**: Copia `.env.example` in `.env` e inserisci le tue chiavi API (vedi sezione AI sotto).
 5. **Database**: `python manage.py migrate`
-6. **Esecuzione**: `python manage.py runserver` (disponibile su http://localhost:8000)
+6. **Dati Demo (Seed)**: Popola il database con dati realistici (prodotti, categorie, utenti e recensioni):
+   ```bash
+   python manage.py seed_data
+   ```
+   *Nota: Tutti gli utenti creati dal seed hanno password `password`.*
+7. **Esecuzione**: `python manage.py runserver` (disponibile su http://localhost:8000)
 
 ### 2. Frontend (React)
 Il frontend è una Single Page Application moderna e reattiva.
